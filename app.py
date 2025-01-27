@@ -1297,4 +1297,4 @@ def remove_course():
 
 #----------  To Run the server  -----------
 if __name__ == "__main__":
-    app.run(threaded=True, debug=True)
+    app.run(threaded=True, debug=False, host='0.0.0.0', port=80)
