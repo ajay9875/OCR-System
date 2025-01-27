@@ -1,0 +1,314 @@
+/*To align nav bar item
+/*----------------------------------------------------*/
+.upper {
+   width: auto;
+   display: flex;
+   align-items: center; /* Vertically aligns items */
+   background-color:#ddd; /* Optional background for clarity */
+   border-radius: 10px;
+   padding: 5px;
+}
+
+.upper .greeting {
+   flex: 1; /* Allows greeting to take up remaining space */
+}
+
+.profile-body {
+   display: flex;
+   align-items: center;
+}
+
+/*--- Searchbox and success-message-box display style ---*/
+.search-success{
+   display:flex;
+}
+
+/*---Sidebar style---*/
+#main{
+   width:80px;
+}
+.sidebar {
+   height: 100%;
+   width: 0;
+   position: fixed;
+   left: 0;
+   top:0;
+   background-color: #333;
+   overflow-x: hidden;
+   transition: 0.5s;
+   padding-top: 50px;
+}
+
+.sidebar a {
+   padding:20px;
+   text-decoration: none;
+   font-size: 25px;
+   color:#e5e2e2;
+   display: block;
+}
+
+.sidebar a:hover {
+   color:blue;
+}
+
+.sidebar .closebtn {
+   position: absolute;
+   top: 0;
+   right: 25px;
+   font-size: 36px;
+   margin-left: 50px;
+}
+
+.opensidebarbtn {
+   height: 50px;
+   width: 50px;
+   cursor: pointer;
+   background-color:black;
+   color:white;
+   padding:10px;
+   border: none;
+}
+
+.opensidebarbtn:hover {
+   background-color: #444;
+}
+
+/* Main content style */
+#main {
+   transition: margin-left .5s;
+   padding: 16px;
+   justify-self: start;
+}
+
+/*------ Profile details container ------*/
+/* Profile Button */
+.profile-btn{
+   border: none;
+   background: none;
+   text-align: center;
+}
+.profile-btn button{
+   background:none;
+   border:none;
+}
+.btn, .active, .pname{
+   display:flex;
+}
+img{
+   height: 65px;
+   width: 65px;
+   border-radius: 100%;
+   border: solid 2px #333;
+   cursor: pointer;
+}
+
+/* Profile Details */
+.profile-details {
+   display: none; /* Hidden by default */
+   position: absolute;
+   top: 170px; /* Adjust based on the placement */
+   right: 20px;
+   background-color: #444;
+   border-radius: 10px;
+   width:fit-content;
+   padding: 50px;
+   transition: opacity 0.3s ease, transform 0.3s ease; /* Smooth toggle */
+   opacity: 0;
+   transform: translateY(-10px); /* Start slightly above */
+}
+
+.profile-details.show {
+   display: block;
+   opacity: 1; /* Fully visible */
+   transform: translateY(0); /* Slide into position */
+} 
+
+.profile-details a {
+   display: block;
+   font-size: 25px;
+   color: #e5e2e2;
+   text-decoration: none;
+}
+
+.profile-details a:hover {
+   color:blue;
+}
+
+button{
+   background: transparent;
+}
+.logoutBtn{
+   border:none;
+   display: block;
+   font-size: 25px;
+   color: #e5e2e2;
+   text-decoration: none;
+   cursor: pointer;
+}
+.logoutBtn:hover{
+   color:blue;
+}
+/*Greeting style for logged in user*/
+#username{
+ font-weight: bold;
+ text-align: center;
+}
+#message{
+   font-weight: bold;
+   text-align: center;
+}
+
+/*-----Search bar design-----*/
+.search-box{
+   margin-left:30px;
+   width:fit-content;
+   height: fit-content;
+   padding:30px;
+}
+
+.search-container {
+   display: flex;
+   width:500px;
+   align-items: center;
+   background: #fff;
+   border: 1px solid #ccc;
+   border-radius: 25px;
+   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+   overflow: hidden;
+}
+.search-container input[type="text"] {
+   border: none;
+   padding: 10px 15px;
+   font-size: 16px;
+   flex-grow: 1;
+   outline: none;
+}
+.search-container button {
+   width:fit-content;
+   height: fit-content;
+   background-color: rgb(238, 51, 44);
+   cursor: pointer;
+   margin-right: 10px;
+   font-size: larger;
+   font-weight: bolder;
+   border-radius: 20px;
+   font-style: italic;
+   border: groove 2px blue;
+   font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+.search-container input::placeholder {
+   color: #aaa;
+}
+.search-container input:focus {
+   border: none;
+}
+
+/*Result box for suggestion after typing something in the searchbox*/
+.result-box ul{
+border-top:1px solid #999;
+padding:15px 10px;
+z-index: 1000;
+}
+.result-box{
+    position: absolute; /* Ensures the top layer overlays the background */
+    z-index: 1000; /* Higher z-index ensures it stays above the background */
+    pointer-events: auto; /* Allows interactions only for this layer */
+    background:#818181; /* Optional: slightly translucent overlay */
+    overflow-y: scroll;
+    width:500px;
+    max-height:250px;
+}
+
+.result-box ul li{
+   list-style:none;
+   border-radius: 3px;
+   padding:15px 10px;
+   cursor:pointer;
+}
+.result-box ul li:hover{
+   background:lightblue;
+   border-radius: 5px;
+}
+
+/*----Course section-----*/
+.course-section {
+   margin: 20px;
+   display: flex;
+   flex-wrap: wrap;
+   gap: 20px;
+   justify-content: space-around;
+}
+.course-card {
+   width: 150px;
+   text-align: center;
+   padding: 15px;
+   border: 1px solid #ddd;
+   border-radius: 8px;
+   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.course-card img {
+   width: 80px;
+   height: 80px;
+   margin-bottom: 10px;
+}
+.course-card h5 {
+   font-size: 18px;
+   margin: 10px 0;
+}
+.course-card p {
+   font-size: 14px;
+   color: #555;
+}  
+.course-card button {
+   background-color:green;
+   color:black;
+   border-radius: 5px;
+   cursor:pointer;
+}  
+
+/*-- All recommended courses --*/
+.allcourse{
+   width:fit-content;
+   height:fit-content;
+   padding:20px;
+   border:groove 2px rgb(220, 216, 216);
+   justify-self:center;
+}
+h2{
+   color:blue;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+table, th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+th {
+    background: #333;
+    color: white;
+}
+#reserve-btn{
+   background-color: rgb(2, 186, 2);
+   border-radius: 5px;
+   border:groove 1px green;
+   padding:2px;
+}
+#reserve-btn:hover{
+   background: green;
+}
+
+.flashed-messages{
+   justify-self: center;
+}
+.active{
+   width: 9px;
+   height: 9px;
+   background-color: green;
+   border-radius: 100%;
+}
+.active,.pname{
+   display:inline-block;
+}

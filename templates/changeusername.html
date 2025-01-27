@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .container{
+            width:15%;
+            height:fit-content;
+            padding:25px;
+            border:double 5px blue;
+            border-radius: 10px;
+        }
+        label, input{
+            margin-bottom: 10px;
+        }
+        button{
+            background-color:bisque;
+            border-radius: 5px;
+        }
+        button:hover{
+            background-color: green;
+            border: solid 2px black;
+        }
+    #error{
+        color:red;
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <label id="error">{{error_message}}</label>
+    <form action="/change_username" method="POST">
+       <label for="newusername">Create a new username</label>
+       <input type="text" id="newusername" name="newusername" placeholder="" required>
+       
+       <label for="confirmusername">Confirm your username</label>
+       <input type="text" id="confirmusername" name="confirmusername" placeholder="" required>
+       
+       <button type="submit">Change</button>
+    </form>
+    </div>
+</body>
+</html>

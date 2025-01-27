@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- To connect an external CSS file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Course Recommendation System</title>
+
+</head>
+<body>
+     
+    <!-- Open Sidebar Button -->
+    <div class="upper">
+    <div id="main">
+        <button class="opensidebarbtn" onclick="toggleSidebar()">&#9776;</button> <!-- ☰ Menu Icon -->
+    </div>
+    
+    <!--Greeting to Learner-->
+    <div class="greeting">
+            {% if username %}
+            <p>Hello, {{ username }}!</p>  <!-- Display the username -->
+            {% else %}
+            <p>Hello, Guest!</p>
+            {% endif %}
+       <p>Welcome to our Online Course Reservation System.
+            Your gateway to quality learning and career growth.</p>
+    </div>
+
+    <!-- Sidebar -->
+    <div id="mySidebar" class="sidebar">
+        <a href="{{ sidebar_links['home'] }}">Home</a>
+        <a href="{{ sidebar_links['about'] }}">About Us</a>
+        <a href="{{ sidebar_links['services'] }}">Services</a>
+        <a href="{{ sidebar_links['contact'] }}">Contact Us</a>
+    </div>
+
+         <!-- Profile Picture and Details Toggle (top-right) -->
+        <div class="profile-body">
+        <div class="profile-btn">
+            <button id="btn" onclick="toggleProfileDetails()"><img src="{{ url_for('static', filename='css/pic.jpeg') }}">
+            </button>
+            <br>
+            {% if username %}
+            <p id="pname">{{ username }}</p>  <!-- Display the username -->
+            {% else %}
+                <p>Guest</p>
+            {% endif %}</p>
+        </div>
+
+            <!-- Profile Details Section -->
+            <div class="profile-details">
+                <a href="/yourInfo">Your Information</a>
+                <br> <br> 
+                <a href="/showCourses">Your Courses</a>
+                <br> <br> 
+                <a href="/showSettings">Settings</a>
+                <br> <br> 
+                <a href="/logout" id="logoutBtn">Log Out</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="search-box">
+      <!-- Course recommendation form -->
+      <form method="POST" action="/">
+        <div class="search-container">
+            <input type="text" id="input-box" name="course" placeholder="Type here to get courses recommendation with AI" autocomplete="off" required>
+            <button type="submit">AI</button>
+        </div>
+      </form>
+        <div class="result-box">
+
+        </div>
+    </div>
+
+    <!-- To Shows Recommendatios -->
+    <!-- To Show Recommendations -->
+    {% if recommendations %}
+    <div class="alert alert-success mt-4">
+        <h4>Recommended Courses:</h4>
+        <div class="course-section">
+            {% for course in recommendations %}
+                <div class="course-card">
+                    <img src="{{url_for('static', filename='css/web.jpg')}}" alt="{{ course }}">
+                    <h5>{{ course }}</h5>
+                    <p>Recommended based on your selection.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+<!-- If No Recommendations, Display Message -->
+{% if not recommendations %}
+    <h4>No recommendations yet, please reserve a course now.</h4>
+{% endif %}
+    
+
+    <!-- JavaScript to Handle Sidebar and Profile Details Toggle -->
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById("mySidebar");
+            const main = document.getElementById("main");
+
+            if (sidebar.style.width === "250px") {
+                sidebar.style.width = "0";
+                main.style.marginLeft = "0";
+            } else {
+                sidebar.style.width = "250px";
+                main.style.marginLeft = "250px";
+            }
+        }
+
+        // Toggle profile details visibility
+        function toggleProfileDetails() {
+            const profileDetails = document.querySelector('.profile-details');
+            profileDetails.classList.toggle("show");
+        }
+
+        //Show empty search box on clicking
+        function showEmpty(){
+           document.getElementById('input-box').value="";
+        }
+      
+      //Autocomplete suggestion on typing in search box
+      let availableKeywords = [
+        'HTML and CSS Fundamentals',
+        'JavaScript Programming', 
+        'Responsive Web Design', 
+        'Front-End Development', 
+        'Back-End Development', 
+        'Full-Stack Web Development', 
+        'React.js Development', 
+        'Node.js and Express.js', 
+        'Angular Framework', 
+        'Vue.js Fundamentals', 
+        'Bootstrap for UI Design', 
+        'Web APIs Integration', 
+        'Database Management with SQL', 
+        'MongoDB and NoSQL Databases', 
+        'Version Control with Git', 
+        'Web Hosting and Deployment', 
+        'Android App Development', 
+        'Java for Android', 
+        'Kotlin for Android', 
+        'Flutter Development', 
+        'React Native Development', 
+        'Android Studio Basics', 
+        'Mobile UI/UX Design', 
+        'RESTful API Integration', 
+        'Firebase Integration', 
+        'Advanced JavaScript ES6+', 
+        'Progressive Web Apps (PWA)', 
+        'Cross-Platform App Development', 
+        'Debugging and Testing Web Apps', 
+        'Artificial Intelligence', 
+        'Machine Learning', 
+        'Deep Learning', 
+        'Neural Networks', 
+        'Natural Language Processing (NLP)', 
+        'Computer Vision', 
+        'Data Science', 
+        'Reinforcement Learning', 
+        'Supervised Learning', 
+        'Unsupervised Learning', 
+        'Python', 'R Programming', 
+        'TensorFlow', 'Keras', 'PyTorch', 
+        'OpenCV', 'Scikit-learn', 
+        'Pandas', 'NumPy', 
+        'Matplotlib', 'Generative AI', 
+        'ChatGPT', 'Large Language Models (LLM)', 
+        'Edge AI', 'AI in Robotics', 'AI in IoT', 
+        'AI Ethics', 'Explainable AI', 
+        'AI Automation', 'Big Data Analytics', 
+        'AI Projects for Beginners', 
+        'ML Algorithms Implementation', 
+        'Face Recognition System', 
+        'AI Chatbot Development', 
+        'Spam Detection', 'Sentiment Analysis', 
+        'Stock Price Prediction', 
+        'Recommendation Systems', 
+        'Object Detection', 'Speech Recognition', 
+        'AI in Healthcare', 'AI in Education', 
+        'AI in Cybersecurity', 'AI for Autonomous Vehicles', 
+        'AI for Climate Change', 'AI and Quantum Computing', 
+        'AI for Smart Cities', 'Human-AI Collaboration', 
+        'AI Bias and Fairness', 
+        'Federated Learning', 'Google Colab', 
+        'Jupyter Notebook', 'Azure Machine Learning', 
+        'AWS SageMaker', 'IBM Watson', 
+        'RapidMiner', 'Weka', 'MATLAB for AI', 
+        'AutoML Tools', 'AI Model Deployment'
+      ];
+
+      const resultsBox = document.querySelector(".result-box");
+      const inputBox = document.getElementById("input-box");
+      
+      inputBox.onkeyup = function(){
+        let result = [];
+        let input = inputBox.value;
+        if(input.length){
+            result = availableKeywords.filter((keyword)=>{
+              return keyword.toLowerCase().includes(input.toLowerCase());
+                
+            });
+        }
+        display(result);
+        if(!result.length){
+            resultsBox.innerHTML = '';
+        }
+      }
+
+      function display(result){
+        const content = result.map((list)=>{
+          return "<li onclick=selectInput(this)>" + list + "</li>";
+        });
+        resultsBox.innerHTML = "<ul>" + content.join('') + "</ul>";
+      }
+      
+      function selectInput(list){
+        inputBox.value = list.innerHTML;
+        resultsBox.innerHTML = '';
+      }
+
+        //Function to clear all cookies and reload page automatically by clicking logout button
+        $(document).ready(function() {
+            $('#logoutBtn').click(function() {
+                // Redirect to logout route which will clear session and cookies
+                window.location.href = "{{ url_for('logout') }}";
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Online Course Reservation</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color:white;
+            color: #333;
+        }
+
+        .contact-header {
+            background-color: #007bff;
+            color: white;
+            height:90px;
+            text-align: center;
+        }
+        
+        .contact-container {
+            width: 500px;
+            margin: 20px auto;
+            height: fit-content;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Diplaying contact form and home button*/
+        .main-content-class{
+            display:flex;
+        }
+
+        .form-group label {
+            font-weight: bold;
+        }
+        button{
+            background-color: pink;
+            border-radius: 5px;
+            border:solid 1px black;
+        }
+        #confirm-message{
+            color:green;
+        }
+        footer {
+        
+            text-align: center;
+            padding:5px;
+            background: #007bff;
+            color: white;
+        }
+
+     /*--- Home button Style --*/
+      .home{
+        height:65px;
+        width:55px;
+        margin: 10px;
+      }
+       .home img{
+          height:60px;
+          width:60px;
+          border-radius: 100%;
+       }
+
+    </style>
+</head>
+<body>
+    <!-- Header details -->
+    <div class="contact-header">
+        <h1>Contact Us</h1>
+        <p>We would love to hear from you. Reach out to us with any questions or feedback.</p>
+    </div>
+    
+ <div class="main-content-class">
+    <!-- Home Button-->
+    <div class="home">
+        <a href="/" class="btn"><img src="{{url_for('static',filename='css/homeicon.png')}}"></a>
+      </div>
+    <div class="contact-container">
+            {% if name and confirm %}
+               <p id="confirm-message">Dear {{name}}, {{confirm}}</p>
+            {% endif %}
+        <form action="/contact" method="POST">
+        <h2>Fill the form now</h2>
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" class="form-control" id="name" name="name" placeholder="Enter your name" onclick="showEmptyMessage()" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="message">Message</label>
+                <textarea class="form-control" id="message" row="3" name="message" placeholder="Type your message here..." required></textarea>
+            </div>
+            
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</div>
+
+    <script>
+        function showEmptyMessage(){
+            document.getElementById('confirm-message').innerHTML='';
+        }
+    </script>
+    <footer>
+        <p>&copy; 2024 Online Course Reservation. All rights reserved.</p>
+    </footer>
+</body>
+</html>

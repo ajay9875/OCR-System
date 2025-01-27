@@ -1,0 +1,35 @@
+title,Description,Course_Name,Difficulty_Level,Duration(weeks),Skills_Covered,Course_Code
+Web Development,Build responsive websites using HTML CSS and JavaScript.,Frontend Development,Beginner,12,HTML CSS and JavaScript for UI/UX,PCC-CSM100
+Data Science,Learn Python and SQL with AI & ML for data analysis and visualization.,Data Analysis,Intermediate,16,Python and SQL with Machine Learning for Data Visualization,PCC-CSM101
+Artificial Intelligence,Master deep learning and neural networks for AI automation.,AI & ML,Advanced,20,AI and Deep Learning with Neural Networks and LLMs,PCC-CSM102
+Cloud Computing,Learn AWS Azure and Google Cloud for scalable solutions.,IT Infrastructure,Intermediate,14,AWS and Azure with Google Cloud and DevOps,PCC-CSM104
+Cyber Security,Protect systems from cyber threats with ethical hacking.,Security,Advanced,18,Ethical Hacking and Network Security and Cryptography,PCC-CSM105
+Python for Data Science,Learn Python programming for data analytics and automation.,Software Development,Beginner,10,Python for Data Analysis and Automation,PCC-CSM106
+Java for Web Development,Learn Java for backend development and web applications.,Software Development,Intermediate,14,Java with OOP for Backend Development,PCC-CSM107
+Blockchain Development,Explore blockchain technology for smart contracts and decentralized finance (DeFi).,Blockchain Technology,Advanced,18,Blockchain for Smart Contracts and Cryptography,PCC-CSM108
+DevOps Engineering,Master CI/CD with Docker and Kubernetes for DevOps automation.,IT Infrastructure,Intermediate,16,CI/CD and Docker with Kubernetes,PCC-CSM109
+UI/UX Design,Create user-friendly designs with prototyping and wireframing.,UI-Design,Beginner,12,Wireframing and Prototyping for UX Research,PCC-CSM110
+Game Development,Build games using Unity and Unreal Engine.,Software Development,Intermediate,20,Unity and Unreal Engine to Game Design,PCC-CSM111
+Internet of Things (IoT),Learn IoT protocols with embedded systems and cloud integration.,Networking,Intermediate,14,Embedded Systems and IoT Protocols with Cloud Integration,PCC-CSM112
+Software Testing,Learn manual and automated testing using Selenium.,Software Development,Beginner,12,Manual Testing and Automation and Selenium,PCC-CSM113
+Big Data Analytics,Process large datasets with Hadoop and Apache Spark.,Data Analysis,Advanced,18,Hadoop and Apache Spark for Data Warehousing,PCC-CSM114
+Quantum Computing,Learn quantum algorithms and cryptography.,Emerging Technology,Advanced,22,Quantum Algorithms and Qubit Operations with Quantum Cryptography,PCC-CSM115
+Digital Marketing,Master SEO and SEM with content marketing for effective digital campaigns.,Marketing Technology,Intermediate,14,SEO and SEM for Content Marketing with Google Analytics,PCC-CSM116
+Mobile App Development,Learn how to build mobile applications using Kotlin and Swift.,Software Development,Beginner,12,Kotlin and Groovy Swift for Mobile App Development and UI Design,PCC-CSM117
+3D Modeling and Animation,Learn to create 3D models and animations using Blender and Maya.,Design,Beginner,12,Blender and Maya with 3D Modeling and Animation,PCC-CSM118
+Robotics and Automation,Learn to design and program robots with sensors and actuators for automation.,Emerging Technology,Advanced,18,Robotics and Sensors for Automation Arduino with Robotics Programming,PCC-CSM119
+Network Administration,Understand network protocols devices and troubleshooting techniques for network management.,IT Infrastructure,Intermediate,14,Network Management and Routing and Switching and Troubleshooting,PCC-CSM120
+Game AI Development,Learn to develop artificial intelligence for game characters and environments.,Software Development,Intermediate,16,Game AI and Pathfinding with Behavior Trees and Unity,PCC-CSM121
+Data Engineering,Master the art of building scalable data pipelines with Python and SQL.,Data Analysis,Intermediate,18,Python and SQL with Data Pipelines and ETL,PCC-CSM122
+Cloud Security,Learn how to secure cloud environments and protect data in the cloud.,Security,Advanced,16,Cloud Security and Azure Data Protection,PCC-CSM123
+Digital Forensics,Explore techniques for investigating cybercrime and gathering digital evidence.,Security,Advanced,18,Digital Forensics with Cybersecurity in Incident Response and Data Recovery,PCC-CSM124
+Artificial Intelligence for Robotics,Apply AI techniques to build autonomous robots and systems.,AI & ML,Advanced,20,Robotics AI and Machine Learning for Autonomous Systems,PCC-CSM125
+Blockchain for Supply Chain,Learn how blockchain can optimize supply chain management and transparency.,Blockchain Technology,Intermediate,14,Blockchain Supply Chain Management and Smart Contracts with Transparency,PCC-CSM126
+Python for Automation,Automate repetitive tasks and processes using Python scripts.,Software Development,Beginner,10,Python and Automation with Scripting and Task Automation,PCC-CSM127
+Natural Language Processing (NLP),Understand and apply NLP techniques to analyze and generate human language.,AI & ML,Intermediate,18,NLP and Text Mining with Machine Learning and Language Models,PCC-CSM128
+Enterprise Resource Planning (ERP),Learn how to integrate business processes using ERP software like SAP.,IT Infrastructure,Intermediate,16,ERP SAP for Business Process Integration with Data Management,PCC-CSM129
+Introduction to Quantum Computing,Get an introduction to quantum computing and its potential impact on technology.,Emerging Technology,Beginner,12,Quantum Computing and Qubits with Quantum Algorithms for Cryptography,PCC-CSM130
+Cybersecurity Risk Management,Learn to assess and manage risks in cybersecurity environments.,Security,Advanced,18,Risk Management in Cybersecurity for Threat Assessment and Compliance,PCC-CSM131
+DevOps for Developers,Learn DevOps practices and tools to automate software development and deployment.,IT Infrastructure,Intermediate,14,DevOps and CI/CD with Jenkins Docker and Kubernetes,PCC-CSM132
+Creative Coding for Interactive Art,Use code to create interactive digital art and visualizations.,Innovative Design,Beginner,10,Creative Coding and Interactive Art for Processing and Visualization,PCC-CSM133
+Machine Learning,Learn supervised & unsupervised and reinforcement learning. Learn to deal with real world applications,Machine Learning Technology,Intermediate,20,All machine learning algorithms and techniques,PCC-CSM134

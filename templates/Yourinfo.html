@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Profile Information</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .profile-header {
+            text-align: center;
+            padding: 20px;
+            background-color: #007bff;
+            color: white;
+        }
+
+/*--- Home button Style --*/
+.home{
+    height:65px;
+    width:55px;
+    margin: 10px;
+  }
+   .home img{
+      height:60px;
+      width:60px;
+      border-radius: 100%;
+   }
+
+   .main-content-class{
+    display:flex;
+   }
+   /*---Profile information style ---*/
+   .profile-info {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+   .profile-info img{
+            width: 90px;
+            height: 90px;
+            border-radius: 100%;
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            color: #007bff;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        ul li {
+            padding: 5px 0;
+        }
+
+        
+        </style>
+</head>
+<body>
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <p>Welcome to your profile page!</p>
+    </div>
+    <!-- Home Button-->
+    <div class="home">
+        <a href="/" class="btn"><img src="{{url_for('static',filename='css/homeicon.png')}}"></a>
+    </div>
+    
+    <!-- Profile Information Section -->
+    <div class="profile-info">
+        <h2>Your Information</h2>
+        {% if details %}
+            {% for detail in details %}
+            <ul>
+              {% if detail.profile_pic %}
+                <img id="profile-image" src="{{ url_for('static', filename='uploads/' + detail.profile_pic) }}" alt="" class="profile-pic">
+              {% else %}
+                <img style="background-color: rgba(160, 160, 160, 0.692);" src="{{ url_for('static', filename='default_profile.png') }}" alt="" class="profile-pic">
+              {% endif %}
+
+                <li><strong>Username:</strong> {{ detail.username }}</li>
+                <li><strong>Email:</strong> {{ detail.email or 'Not provided' }}</li>
+                <li><strong>Phone:</strong> {{ detail.phone_number or 'Not provided' }}</li>
+            </ul>
+            {% endfor %}
+        {% endif %}
+        
+    </div>
+
+</body>
+</html>

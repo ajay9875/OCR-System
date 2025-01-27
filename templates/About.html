@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- To connect an external CSS file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/About.css') }}">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Online Course Reservation</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        
+</head>
+<body>
+
+    <div class="about-section">
+        <h1>About Us</h1>
+        <p>Your gateway to quality learning and career growth.</p>
+    </div>
+   <div class="main-content-class">
+    <!-- Home Button-->
+    <div class="home">
+        <a href="/" class="btn"><img src="{{url_for('static',filename='css/homeicon.png')}}"></a>
+      </div>
+
+    <div class="about-content">
+        <h2>Welcome to Online Course Reservation</h2>
+        <p>
+            We’re excited to have you on board as you take the first step toward achieving 
+            your learning goals. Our platform is designed to make finding and reserving 
+            courses simple, efficient, and tailored to your needs. Whether you're looking 
+            to enhance your skills, explore a new field, or pursue a lifelong passion.
+            At Online Course Reservation, we are committed to making education accessible and flexible. 
+            Whether you're looking to advance your career, gain new skills, or explore a personal interest, 
+            our platform connects you with top-quality courses offered by experienced instructors worldwide.
+        </p>
+        <p>
+            Our mission is to empower learners of all ages by providing a seamless reservation system for a wide 
+            range of online courses. From technical skills to creative arts, we have something for everyone.
+        </p>
+    </div>
+  </div>
+
+
+    <div class="team-section">
+        <h2 class="text-center">Meet Our Team</h2>
+        <br>
+        <div class="row justify-content-center">
+            <div class="col-md-3 team-member">
+                <img src="{{ url_for('static', filename='css/pic.jpeg') }}" alt="Picture"><h5>Ajay Kumar Sah</h5>
+                <p>Founder & CEO</p>
+            </div>
+            <div class="col-md-3 team-member">
+                <img src="{{ url_for('static', filename='css/pic.jpeg') }}" alt="Picture"><h5>Ajay Kumar Sah</h5>
+                <p>Chief Operating Officer</p>
+            </div>
+            <div class="col-md-3 team-member">
+                <img src="{{ url_for('static', filename='css/pic.jpeg') }}" alt="Picture"><h5>Ajay Kumar Sah</h5>
+                <p>Lead Developer</p>
+            </div>
+            <div class="col-md-3 team-member">
+                <img src="{{ url_for('static', filename='css/pic.jpeg') }}" alt="Picture"><h5>Ajay Kumar Sah</h5>
+                <p>Head of Marketing</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Online Course Reservation. All rights reserved.</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

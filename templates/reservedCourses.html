@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Courses</title>
+    <style>
+
+        /* All courses table style */
+        table{
+            width:100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+        border: 1px solid #ddd;
+        padding: 10px;
+         }
+        th{
+            background: #333;
+            color:white;
+        }
+    
+        .profile-header {
+            padding: 10px;
+            background-color: #222222;
+            color: white;
+            text-align: center;
+            margin: 0px;
+        }
+        .home {
+            margin: 10px;
+        }
+        .home img {
+            height: 60px;
+            width: 60px;
+            border-radius: 50%;
+        }
+        
+        .allcourse{
+            width:fit-content;
+            margin-left: 250px;
+        }
+        .main-body{
+            display:flex;
+        }
+    .btn-container button{
+            background: red;
+            border-radius: 5px;
+            border:groove 2px rgb(141, 1, 1);
+            padding:3px;
+        }
+        .btn-container button:hover{
+            background: rgb(226, 2, 2);
+            border-radius: 5px;
+            padding:3px;
+        }
+
+/*----Course section-----*/
+.flash-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 10px;
+}
+
+</style>
+</head>
+<body>
+    <div class="profile-header">
+        <p>Welcome to Your Courses Page!</p>
+    </div>
+    <div class="success">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+         {% if messages %}
+             {% for categories, message in messages %}
+              <h3 style="color:green">{{ message }}</h3>
+             {% endfor %}
+         {% endif %}
+         {% endwith %}
+    </div>
+    <div class="main-body">
+        <div class="home">
+            <a href="/" class="btn"><img src="{{ url_for('static', filename='css/homeicon.png') }}"></a>
+        </div>
+    
+      <!-- Reserved  Courses-->
+        <div class="allcourse">
+            <h3>All Enrolled Courses</h3>
+            {% if allenrolledcourses %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>SL.No.</th>
+                            <th>ID</th>
+                            <th>Course Code</th>
+                            <th>Course Name</th>
+                            <th>Course Unit</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                {% for course in allenrolledcourses %}
+                <tbody>
+                    <!-- Example Row -->
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ course['id'] }}</td>
+                        <td>{{ course['course_code'] }}</td>
+                        <td>{{ course['course_name'] }}</td>
+                        <td>{{ course['course_unit'] }}</td>
+                        <td>
+                            <div class="btn-container">
+                              <form method="POST" action="/removeCourse">
+                                <input type="hidden" name="id" value="{{ course['id'] }}">
+                                <input type="hidden" name="course_name" value="{{ course['course_name'] }}">
+                                <button>Remove</button>
+                              </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                {% endfor %}
+            </table>
+            {% else %}
+                No Enrolled Courses to show.
+            {% endif %}
+        </div>
+  </div>
+</body>
+</html>

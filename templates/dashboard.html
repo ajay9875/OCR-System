@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- To connect an external CSS file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ai-Powerred Course Recommendation</title>
+    
+    <style>
+
+/*To design our nav bar element and their body*/
+    .nav-bar {
+        justify-content: space-between;
+        align-items: center;
+        height: 50px;
+        padding:5px;
+        background-color:grey;
+        border-radius: 3px;
+    }
+    .nav-bar a {
+        color: black;
+        text-decoration: none;
+        margin: 0px;
+        padding: 15px;
+        transition: background-color 0.3s ease;
+        font-size: larger;
+        font-weight: bold;
+    }
+
+    .nav-bar button{
+        background-color: grey;
+        border:none;
+    }
+
+    .nav-bar a:hover {
+        background-color: white;
+        border-radius: 5px;
+    }
+
+    .nav-bar .brand {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .nav-bar ul {
+        list-style: none;
+        display: flex;
+        margin: 0;
+        padding: 0;
+    }
+
+    .nav-bar ul li {
+        display: inline;
+    }
+
+/* To show details and login page with inline property */
+.all{
+    display:flex;
+    justify-content: space-between;
+}
+
+/* Details class style */
+.left-side{
+    width: fit-content;
+    height: fit-content;
+    margin-left: 25px;
+}
+
+/*Greet on signup*/
+    #greet{
+        color:green;
+        font-size: large;
+        font-weight: bolder;
+        border-radius: 5px;
+     }
+
+/* Design of all element in the login form with display */
+h2, label, input, button, a{
+    display:flex;
+    margin-bottom: 10px;
+}
+
+label{
+    font-size: larger;
+}
+input {
+    border-radius: 5px;
+    border-color: black;
+    height: 20px;
+    width:200px;
+}
+
+/* User Login page design */
+    .Loginpage h2{
+        color:#a52a2a;
+     }
+    .Loginpage {
+        justify-items: center;
+        width:200px;
+        height:fit-content;
+        border:groove 2px whitesmoke;
+        padding:20px;
+        justify-self: end;
+        margin:20px;
+        border-radius: 10px;
+        background-color:rgb(235, 235, 230);
+    }
+    .log-icon {
+        text-align: center;
+    }
+    .log-icon img {
+        border-radius: 100%;
+        height:50px;
+        width:50px;
+    }
+    #error {
+        color:red;
+        font-weight:bold ;
+    }
+
+    .Loginpage button{
+        border-radius: 10px;
+        padding:5px;
+        background-color: chartreuse;
+        border: groove 2px black;
+    }
+    .Loginpage button:hover{
+        background-color:rgb(91, 245, 44);
+    }
+
+    .logo-image{
+        justify-self: flex-end;
+    }
+
+    .logo-image img{
+      height:40px;
+      width:40px;
+      margin:5px;
+      border-radius: 100%;
+    }
+    
+    .logo-image-greet{
+        display:flex;
+        justify-content: flex-end;
+    }
+
+    </style>
+
+</head>
+
+<body>
+    <!--Nave bar body-->
+    <div class="nav-bar">
+        <ul>
+          <li><a href="#">Home</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/services">Services</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/adminLogin">Admin - Login</a></li>
+        </ul>
+    </div>
+</div>
+
+  <div class="all">
+  
+   <div class="left-side">
+        <!-- Hero Section -->
+    <div class="hero">
+        <h1>Welcome to AI Course Recommendation</h1>
+        <p>Find the best courses tailored to your interests with our AI-powered system.</p>
+    </div>
+
+    <!-- Features Section -->
+    <div class="features">
+        <h2>Why Choose Us?</h2>
+        <p>✔ AI-driven course recommendations based on your preferences.</p>
+        <p>✔ Personalized learning paths to help you achieve your goals.</p>
+        <p>✔ Wide range of courses in different domains.</p>
+    </div>
+
+    <!-- Sample Courses -->
+    <div class="features">
+        <h2>Popular Courses</h2>
+        <div class="course-container">
+            <div class="course-card">
+                <h3>Machine Learning</h3>
+                <p>Learn the basics of ML and its real-world applications.</p>
+            </div>
+            <div class="course-card">
+                <h3>Web Development</h3>
+                <p>Master front-end and back-end technologies.</p>
+            </div>
+            <div class="course-card">
+                <h3>Data Science</h3>
+                <p>Become an expert in data analysis and visualization.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  <div class="right-side">
+   <div class="logo-image-greet">
+    <div class="greet">
+     <!-- Flash messages -->
+     {% with messages = get_flashed_messages(with_categories=true) %}
+     {% if messages %}
+         {% for category, message in messages %}
+          <p id="greet">{{ message }}</p>
+         {% endfor %}
+     {% endif %}
+     {% endwith %}
+ 
+    </div>
+    <div class="logo-image">
+        <img src="static\css\logo.jpg">
+      </div>
+   </div>
+    <!-- Login Form -->
+    <div class="Loginpage">
+      <div class="log-icon">
+        <h2>User Login</h2>
+         <!-- Login icon -->
+        <img src="static\css\loginicon.png">
+      </div>
+        <form method="POST" action="/login">
+            <!-- Error Message -->
+            <label id="error">
+                {% if error_message  %}
+                   {{ error_message }}
+                {% endif %}
+            </label>
+            <br>
+            <div class="form-group">
+                <label for="username">Enter Username</label>
+                <input type="text" class="form-control" id="username" name="username" onclick="hideError_message()" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Enter Password</label>
+                <input type="password" class="form-control" id="password" name="password" onclick="z" required>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit">SUBMIT</button>
+
+            <!-- Additional Links -->
+            <div class="link">
+                <a href="/forgetpass">Forgot password?</a>
+                <a href="/forgot_username">Forgot username?</a>
+                <a class="newuser" href="/register">New user?</a>
+            </div>
+        </form>
+     </div>
+    </div>
+   </div>
+      <script>
+      // Function to hide the error oninput in the username box
+      function hideError_message() {
+        document.getElementById('error').innerHTML='';
+        document.getElementById('greet').style.visibility = "hidden";
+      }
+      
+      </script>
+
+</body>
+</html>

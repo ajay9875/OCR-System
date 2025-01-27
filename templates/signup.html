@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  <!-- To connect a external css file-->
+  <!--
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/signup.css') }}">
+  -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Registration Page</title>
+
+<style>
+  /*--- All content displaying with inline style ---*/
+  .all-content{
+    display: flex;
+  }
+  /*--- Home button Style --*/
+.home{
+    height:65px;
+    width:55px;
+    margin: 5px;
+  }
+   .home img{
+      height:60px;
+      width:60px;
+      border-radius: 100%;
+   }
+
+
+h2{
+  color:deeppink;
+}
+
+/*signup form style*/
+.signup-page{
+  float:center;
+  height: fit-content;
+  width: 320px;
+  padding:25px;
+  border-radius: 10px;
+  border:solid 2px rgb(199, 197, 197);
+  background-color: rgb(247, 250, 247);
+  margin-left: 400px;
+}
+/*Sign up icon*/
+img{
+  width:75px;
+  height:75px;
+}
+.signup-icon{
+  text-align: center;
+}
+/* Style for the labels and inputs */
+label {
+    display: block; /* Ensure labels take up a full line */
+    margin-bottom: 5px; /* Space between label and input */
+    font-weight: bold; /* Optional: make labels bold */
+}
+
+input {
+    display: block; /* Ensure inputs take up a full line */
+    width: 300px; /* Ensure inputs take the full width of the container */
+    padding: 5px; /* Add padding to input */
+    margin-bottom: 15px; /* Space between inputs */
+    border:groove 2px black;
+    border-radius: 5px;
+}
+
+/* Optional styling for error messages */
+.error label {
+    color: red; /* Error message label color */
+}
+
+/* Optional: Button styling */
+.button {
+    display: block; /* Button on its own line */
+    margin-top: 20px; /* Space above the button */
+    padding: 10px 20px; /* Button padding */
+    background-color: #007bff; /* Button color */
+    color: white; /* Button text color */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Button rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+}
+
+.button:hover {
+    background-color: #0056b3; /* Darker button color on hover */
+}
+
+</style>
+
+</head>
+<body> 
+<div class="all-content">
+  <!-- Home Button-->
+  <div class="home">
+    <a href="/login" class="btn"><img src="{{url_for('static',filename='css/homeicon.png')}}"></a>
+  </div>
+  
+  <div class="signup-page">
+        <form method="POST" action="/register">
+         <div class="signup-icon">
+            <h2>SignUp Now</h2>
+            <!-- Login icon -->
+           <img src="static\css\signupicon.png">
+         </div> 
+      <div class="error">
+          <!-- Error Message -->
+          <label id="error">{{ error_message }}</label>
+      </div>
+      
+      <div class="username-input">
+          <label for="username">Enter Username</label>
+          <input type="text" class="form-control" id="username" onclick="hideError_message()" name="username" required>
+      </div>
+      
+      <div class="pnone-number-input">
+          <label for="phonenumber" class="form-label">Enter Phone Number</label>
+          <input type="number" class="form-control" id="phonenumber" name="phone_number" required>
+      </div>
+      
+      <div class="email-input">
+          <label for="email" class="form-label">Enter Email Address</label>
+          <input type="email" class="form-control" id="email" name="email" required>
+      </div>
+      
+      <div class="newpass">
+          <label for="password" class="form-label">Create Password</label>
+          <input type="password" class="form-control" id="newpassword" name="newpassword" required>
+      </div>
+      
+      <div class="cpass">
+          <label for="confirmpassword" class="form-label">Re-enter Password</label>
+          <input type="password" class="form-control" id="confirmpassword" name="confirmpassword" required>
+      </div>
+      
+      <div class="btn">
+          <button class="button submit-button">SUBMIT</button>
+      </div>  
+      
+    </form>
+  </div>
+</div>
+    <script>
+        // Function to hide the error oninput in the username box
+        function hideError_message() {
+          var error = document.getElementById('error');
+          error.innerText = "";
+        }
+        </script>
+</body>
+</html>

@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .home {
+            height: 65px;
+            width: 55px;
+            margin: 5px;
+            position:fixed;
+        }
+        .home img {
+            height: 60px;
+            width: 60px;
+            border-radius: 100%;
+        }
+
+        .admin-container {
+            width: fit-content;
+            margin: auto;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-around;
+            background: #333;
+            padding: 10px;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+        }
+        .nav a:hover {
+            background: #575757;
+            border-radius: 5px;
+        }
+        .section {
+            display: none;
+            padding: 20px;
+        }
+        .active {
+            display: block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        th {
+            background: #333;
+            color: white;
+        }
+
+        .btn-container #delete-btn{
+            background: red;
+            border-radius: 5px;
+            border:groove 2px rgb(141, 1, 1);
+            padding:3px;
+        }
+        .btn-container #delete-btn:hover{
+            background: rgb(226, 2, 2);
+            border-radius: 5px;
+            padding:3px;
+        }
+/* User section style */
+.addNewUser{
+    width:fit-content;
+    padding:20px;
+    background-color: rgba(165, 165, 165, 0.644);
+    border: solid 4px rgb(245, 234, 213)
+}
+.updateUser-container{
+    display: flex;
+    justify-content: space-around;
+}
+.updateUser{
+    display:none;
+}
+
+/* Courses section style */
+/* Add new  course */
+h3{
+    color:#2196f3;
+}
+.addnewCourse{
+    width:fit-content;
+    padding:20px;
+    background-color: rgba(165, 165, 165, 0.644);
+    border: solid 4px rgb(245, 234, 213)
+}
+.edit-btn{
+    background-color: rgb(255, 177, 74);
+    border-radius: 5px;
+    display: block;
+}
+.delete-btn {
+    background-color: rgb(238, 40, 40);
+    border-radius: 5px;
+}
+.btn-container{
+    display:flex;
+    justify-content: space-between;
+}
+
+.updateForm{
+    display: none;
+}
+
+/* Signup page style */
+#signup label,input,button{
+    display:flex;
+    margin-bottom: 10px;
+}
+#signup input{
+    width:250px;
+}
+
+#signup img{
+    height:65px;
+    width:65px;
+    margin-left: 95px;
+}
+#signup{
+    justify-content: center;
+    justify-self: center;
+    height: fit-content;
+    width:fit-content;
+    padding:20px;
+    background-color: rgba(165, 165, 165, 0.644);
+    border: solid 4px rgb(245, 234, 213)
+}
+
+
+/* Style for flashed-messages with their categories */
+/* Container for flash messages */
+.flash-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 10px;
+}
+
+/* General styles for all flash messages */
+.flash-message {
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Success message styles */
+.flash-message.success {
+    color: #4caf50; /* Green */
+    border: 1px solid #fff7ef;
+}
+
+/* Error message styles */
+.flash-message.error {
+    color: #f44336; /* Red */
+    border: 1px solid #fff7ef;
+}
+
+/* Info message styles */
+.flash-message.info {
+    color: #2196f3; /* Blue */
+}
+
+/* Warning message styles */
+.flash-message.warning {
+    color: #ff9800; /* Orange */
+}
+
+/* Session management page style */
+
+.session-control {
+            margin-top: 20px;
+            background-color: rgba(165, 165, 165, 0.644);
+            border: solid 4px rgb(245, 234, 213);
+            padding: 20px;
+        }
+
+        .session-control h3 {
+            color: #2196f3;
+        }
+      
+        .btn-container #force-logout-btn {
+            color: white;
+            background-color: red;
+            padding: 10px;
+            border: groove 1px black;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-container #force-logout-btn:hover {
+            background-color: #e91405;
+        }
+        #active{
+          background-color: green;
+          width: 7px;
+          height: 7px;
+          border-radius: 100%;
+          margin-left: 1px;
+        }
+        #inactive{
+          background-color:#e91405;
+          width: 7px;
+          height: 7px;
+          border-radius: 100%;
+          margin-left: 1px;
+        }
+
+</style>
+</head>
+
+
+<body>
+
+    <!-- Nav bar body -->
+    <div class="nav">
+        <a href="#" onclick="showSection('signup')">Admin - Registration</a>
+        <a href="#" onclick="showSection('users')">Manage Users</a>
+        <a href="#" onclick="showSection('courses')">Manage Courses</a>
+        <a href="#" onclick="showSection('session')">Manage Session</a>
+        <a href="#" onclick="showSection('enrolledcourse')">Enrolled Courses</a>
+        <a href="/adminLogout">Logout</a>
+    </div>
+    
+    <!-- Home Button -->
+    <div class="home">
+        <a href="/adminDashboard" class="btn"><img src="{{ url_for('static', filename='css/homeicon.png') }}"></a>
+    </div>
+
+    <!-- Flashed messages -->
+    {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+        <div class="flash-container">
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+
+
+    <div class="admin-container">
+        <!-- Admin Registration Section -->
+        <div id="signup" class="section">
+            <h2>Admin Registration</h2>
+            <form method="POST" action="/registerAdmin">
+                <div class="signup-icon">
+                    <img src="static\css\signupicon.png">
+                </div>
+                <div class="error">
+                    {% if error_message %}
+                        <label id="error">{{ error_message }}</label>
+                    {% endif %}
+                </div>
+
+                <div class="username-input">
+                    <label for="username">Enter Username</label>
+                    <input type="text" class="form-control" id="username" onclick="hideError_message()" name="username" required>
+                </div>
+
+                <div class="phone-number-input">
+                    <label for="phonenumber" class="form-label">Enter Phone Number</label>
+                    <input type="number" class="form-control" id="phonenumber" name="phone_number" required>
+                </div>
+
+                <div class="email-input">
+                    <label for="email" class="form-label">Enter Email Address</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+
+                <div class="newpass">
+                    <label for="password" class="form-label">Create Password</label>
+                    <input type="password" class="form-control" id="newpassword" name="newpassword" required>
+                </div>
+
+                <div class="cpass">
+                    <label for="confirmpassword" class="form-label">Re-enter Password</label>
+                    <input type="password" class="form-control" id="confirmpassword" name="confirmpassword" required>
+                </div>
+                <div class="cpass">
+                    <label for="securityPin" class="form-label">Generate Security Pin</label>
+                    <input type="number" class="form-control" id="securityPin" name="securityPin" required>
+                </div>
+                <div class="button">
+                    <button class="button submit-button">Register</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Manage Users Section -->
+        <div id="users" class="section">
+            <h2>Manage Users</h2>
+            <!-- Add New User Form -->
+            <h3>Add New User</h3>
+          <div class="addNewUser">
+            <form method="POST" action="/newUser">
+                <div class="username-input">
+                    <label for="username">Enter Username</label>
+                    <input type="text" name="username" placeholder="" required>
+                </div>
+
+                <div class="phone-number-input">
+                    <label for="phone_number" class="form-label">Enter Phone Number</label>
+                    <input type="number" name="phone_number" placeholder="" required>
+                </div>
+
+                <div class="email-input">
+                    <label for="email" class="form-label">Enter Email Address</label>
+                    <input type="email" class="form-control" name="email" placeholder="" required>
+                </div>
+
+                <div class="newpass">
+                    <label for="password" class="form-label">Create Password</label>
+                    <input type="password" class="form-control" name="newpassword" placeholder="" required>
+                </div>
+
+                <div class="button">
+                    <button type="submit">Add User</button>
+                </div>
+            </form>
+          </div>
+            <!-- To show all users -->
+            {% if allusers %}
+            <h3>All Users</h3>
+            <table>
+                <tr>
+                    <th>Serial No.</th>
+                    <th>Id</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Phone Number</th>
+                    <th>Creation Date</th>
+                    <th>Actions</th>
+                </tr>
+                {% for user in allusers %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ user['id'] }}</td>
+                    <td>{{ user['username'] }}</td>
+                    <td>{{ user['email'] }}</td>
+                    <td>{{ user['phone_number'] }}</td>
+                    <td>{{ user['created_at'] }}</td>
+                    <td>
+                        <div class="updateUser-container">
+                            <button type="button" class="edit-btn" onclick="showUpdateUserSection(this)">Update</button>
+                            <!-- Update User Form -->
+                            <form class="updateUser" method="POST" action="/updateUser">
+                                <input type="hidden" name="user_id" value="{{ user['id'] }}">
+                                
+                                <label>Username</label>
+                                <input type="text" name="username" value="{{ user['username'] }}" required>
+                                
+                                <label>Phone Number</label>
+                                <input type="number" name="phone_number" value="{{ user['phone_number'] }}" required>
+                                
+                                <label>Email</label>
+                                <input type="email" name="email" value="{{ user['email'] }}" required>
+                                
+                                <label>Password</label>
+                                <input type="password" name="password" required>
+                                
+                                <button type="submit">Update User</button>
+                            </form>
+                            <form method="POST" action="/deleteUser">
+                                <input type="hidden" name="user_id" value="{{ user['id'] }}">
+                                <button type="submit" class="delete-btn">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+                <p>No user to show, please add new user now.</p>
+            {% endif %}
+        </div>
+
+        <!-- Manage Courses Section -->
+        <div id="courses" class="section">
+            <h2>Manage Courses</h2>
+            <h3>Add new course</h3>
+        <div class="addnewCourse">
+
+            <form method="POST" action="/addnewCourse">
+              <label>Course Code</label>
+              <input type="text" name="course_code" placeholder="" required>
+
+              <label>Course Name</label>
+              <input type="text" name="course_name" placeholder="" required>
+
+              <label>Course Unit</label>
+              <input type="number" name="course_unit" placeholder="" required>
+
+              <label>Seat Limit</label>
+              <input type="number" name="seat_limit" placeholder="" required>
+
+              <button type="submit">Add Course</button>
+            </form>
+        </div>
+
+            <h3>All Courses</h3>
+            <table>
+                <tr>
+                    <th>S.No.</th>
+                    <th>Id</th>
+                    <th>Course Code</th>
+                    <th>Course Name</th>
+                    <th>Course Unit</th>
+                    <th>Seat Limit</th>
+                    <th>Actions</th>
+                </tr>
+                {% for course in allcourses %}
+                <tr id="course-{{ course['id'] }}">
+                    <td>{{ loop.index }}</td>
+                    <td>{{ course['id'] }}</td>
+                    <td>{{ course['course_code'] }}</td>
+                    <td>{{ course['course_name'] }}</td>
+                    <td>{{ course['course_unit'] }}</td>
+                    <td>{{ course['seat_limit'] }}</td>
+                    <td>
+                        <div class="btn-container">
+                            <button type="button" class="edit-btn" onclick="openUpdateForm(this)">Update</button>
+
+                            <!-- Form to update courses -->
+                            <form class="updateForm" method="POST" action="{{ url_for('updateCourse') }}">
+                                <input type="hidden" name="course_id" value="{{ course['id'] }}">
+
+                                <label>Course Code:</label>
+                                <input type="text" name="course_code" value="{{ course['course_code'] }}" required>
+
+                                <label>Course Name:</label>
+                                <input type="text" name="course_name" value="{{ course['course_name'] }}" required>
+
+                                <label>Seat Limit:</label>
+                                <input type="number" name="seat_limit" value="{{ course['seat_limit'] }}" required>
+
+                                <label>Course Unit:</label>
+                                <input type="number" name="course_unit" value="{{ course['course_unit'] }}" required>
+
+                                <button type="submit">Update Course</button>
+                            </form>
+
+                            <!-- Delete form -->
+                            <form method="POST" action="/deleteCourse">
+                                <input type="hidden" name="course_id" value="{{ course['id'] }}">
+                                <button type="submit" class="delete-btn">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- Manage session section -->
+        <div id="session" class="section">
+            <h2>Session Management</h2>
+            {% if allsessions %}
+                <h3>All Sessions</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sl.No.</th>
+                            <th>Session ID</th>
+                            <th>User ID</th>
+                            <th>IP Address</th>
+                            <th>Active</th>
+                            <th>Last Login</th>
+                            <th>Last Logout</th>
+                            <th>Total Active Time</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                {% for session in allsessions  %}
+                <tbody>
+                    <!-- Example Row -->
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ session['session_id'] }}</td>
+                        <td>{{ session['user_id'] }}</td>
+                        <td>{{ session['IP_address'] }}</td>
+                        <td>{{ session['logged_in'] }} {% if session['logged_in'] == True %}
+                             <p id="active"></p>
+                         {% else %}
+                            <p id="inactive"></p>
+                         {% endif %}</td>
+                        <td>{{ session['login_time'] }}</td>
+                        <td>{{ session['logout_time'] }}</td>
+                        <td>{{ session['active_time'] }}</td>
+                        <td>
+                            <div class="btn-container">
+                              <form action="/forceLogout" method="POST">
+                                <input type="hidden" name="user_id" value="{{ session['user_id'] }}">
+                                <button id="force-logout-btn">Force Logout</button>
+                              </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                {% endfor %}
+            </table>
+            {% else %}
+                No session to show.
+            {% endif %}
+        </div>
+
+        <!-- Manage Enrolled Courses section -->
+        <div id="enrolledcourse" class="section">
+            <h2>Enrolled Courses</h2>
+            {% if allenrolledcourses %}
+                <h3>All Enrolled Courses</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>SL.No.</th>
+                            <th>ID</th>
+                            <th>User ID</th>
+                            <th>Course Code</th>
+                            <th>Course Name</th>
+                            <th>Course Unit</th>
+                            <th>Seat Limit</th>
+                            <th>Enrolled Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                {% for course in allenrolledcourses %}
+                <tbody>
+                    <!-- Example Row -->
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ course['id'] }}</td>
+                        <td>{{ course['user_id'] }}</td>
+                        <td>{{ course['course_code'] }}</td>
+                        <td>{{ course['course_name'] }}</td>
+                        <td>{{ course['course_unit'] }}</td>
+                        <td>{{ course['seat_limit'] }}</td>
+                        <td>{{ course['enrolled_at'] }}</td>
+                        <td>
+                            <div class="btn-container">
+                              <form method="POST" action="/deleteEnrolledCourse">
+                                <input type="hidden" name="id" value="{{ course['id'] }}">
+                                <button id="delete-btn">Delete</button>
+                              </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                {% endfor %}
+            </table>
+            {% else %}
+                No Enrolled Courses to show.
+            {% endif %}
+        </div>   
+    </div>
+
+    <script>
+        // Function to show the correct section
+        function showSection(sectionId) {
+            let sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        // To show update course form onclicking update button
+        function openUpdateForm(button) {
+            var row = button.closest('tr'); // Find the closest <tr> to the button clicked
+            var form = row.querySelector('.updateForm'); // Get the form inside that row
+            var editBtn = row.querySelector('.edit-btn'); // Get the edit button in that row
+
+            // Show the form and hide the edit button
+            form.style.display = 'block';
+            editBtn.style.display = 'none';
+        }
+
+        // To show update form onclicking update button
+        // Function to show update user section (specifically for users)
+        function showUpdateUserSection(button) {
+            var row = button.closest('tr'); // Find the closest <tr> to the button clicked
+            var form = row.querySelector('.updateUser'); // Get the form inside that row (for user)
+            var editBtn = row.querySelector('.edit-btn'); // Get the edit button in that row
+
+            // Show the form and hide the edit button for user update
+            if (form && editBtn) {
+                form.style.display = 'block';
+                editBtn.style.display = 'none';
+            }
+        }
+
+    </script>
+</body>
+</html>

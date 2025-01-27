@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  <!-- To connect a external css file-->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/forget.css') }}">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Username</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+      /*Home button style */
+      .home {
+            height: 65px;
+            width: 55px;
+            margin: 0 5px 20px;
+        }
+        .home img {
+            height: 60px;
+            width: 60px;
+            border-radius: 100%;
+        }
+  
+        /*Form style*/
+        label,input,button{
+            display:flex;
+            margin-bottom: 10px;
+        }
+        input{
+          width:300px;
+        }
+        
+        label{
+            font-size: larger;
+        }
+
+        button{
+            background-color:rgb(105, 248, 248);
+            border-radius: 5px;
+        }
+        button:hover{
+            background-color: green;
+        }
+        .form{
+            height:fit-content;
+            width:fit-content;
+            justify-self: center;
+            padding:30px;
+            border:solid 2px rgb(138, 138, 138);
+            background-color:rgb(204, 209, 209);
+            border-radius: 10px;
+            margin: 30px;
+        }
+
+        /* Success message style */
+        #success{
+          color:darkgreen;
+          font-size: larger;
+          text-align:center;
+          visibility: visible;
+        }
+        
+        /* Error message style */
+        #error{
+          color:red;
+          font-size: larger;
+        }
+        
+      </style>
+</head>
+<body>  
+    <!-- Home Button -->
+    <div class="home">
+      <a href="/login" class="btn"><img src="{{ url_for('static', filename='css/homeicon.png') }}"></a>
+    </div>
+
+  <!-- Flash success messages -->
+     {% if success_message %}
+     <p id="success"> {{ success_message }} </p>
+     {% endif %}
+  
+    <div class="form">
+      <!-- Heading -->
+      <h3> Reset username</h3>
+
+        <form  action="/forgot_username" method="POST">
+                <label id="error">
+                  {% if error_message %}
+                 
+                    {{error_message}}
+
+                  {% endif %}
+                </label>
+
+                <label for="username">Set Username</label>
+                <input type="text" id="username" name="username" placeholder="" onclick="hideError_message()" required>
+                
+                <label for="email">Registered Email</label>
+                <input type="email" id="email" name="email" placeholder="" required>
+                
+                <label for="phone_number">Phone Number</label>
+                <input type="number" id="phone_number" name="phone_number" placeholder="" required>
+
+                <button type="submit">SUBMIT</button>
+        </form>
+  </div>
+  <script>
+    // Function to hide the error oninput in the username box
+    function hideError_message() {
+      document.getElementById('error').innerHTML='';
+      document.getElementById('success').style.visibility='hidden';
+    }
+    </script>
+</body>
+</html>

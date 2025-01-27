@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Reset Password</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/forget.css') }}">
+    <style>
+        /*Home button style */
+        .home {
+            height: 65px;
+            width: 55px;
+            margin: 0 5px 20px;
+        }
+        .home img {
+            height: 60px;
+            width: 60px;
+            border-radius: 100%;
+        }
+
+        #error {
+            color: red;
+        }
+
+        form label,
+        form input,
+        form button {
+            display: block; /* Ensure each element starts on a new line */
+            margin-bottom: 15px; /* Add space between elements */
+            width: 100%; /* Stretch elements to fit the container */
+            max-width: 400px; /* Restrict maximum width */
+        }
+
+        .forget-pass {
+            width: 400px;
+            height: fit-content;
+            margin-top: 20px;
+            margin-left: 400px;
+            padding: 20px;
+            border: double 2px rgb(207, 204, 204);
+            border-radius: 20px;
+            background-color: rgb(246, 247, 248);
+            justify-self: center;
+        }
+
+        .allitems{
+            display:flex;
+        }
+        /* Submit button styles */
+        #button {
+            background-color: #24ff07;
+            border-color: #1e0ce6c9;
+            border-radius: 5px;
+        }
+
+        #button:hover {
+            background-color: #8ccc38d7;
+        }
+
+        /* Placeholder styling for all inputs */
+        input::placeholder {
+            color: #888; /* Default placeholder color */
+            font-style: italic;
+        }
+
+        /* Ensure email field is styled consistently */
+        .email::placeholder {
+            color: #444; /* Make email placeholder color slightly darker */
+            font-weight: bold; /* Make it stand out */
+        }
+    </style>
+</head>
+<body>
+
+ <div class="allitems">
+    <!-- Home Button -->
+    <div class="home">
+        <a href="/login" class="btn"><img src="{{ url_for('static', filename='css/homeicon.png') }}"></a>
+    </div>
+
+    <div class="forget-pass">
+        <h3>Reset password</h3>
+        <form method="POST" action="/forgetpass">
+            <label id="error">{{ error_message }}</label>
+            <label for="username">Enter Username</label>
+            <input type="text" class="form-control" name="username" placeholder="" onclick="hideErrorMessage()" required>
+
+            <label for="email">Enter Email</label>
+            <input type="email" class="email form-control" name="email" placeholder="" required>
+
+            <label for="phone_number">Registered Phone Number</label>
+            <input type="number" class="form-control" name="phone_number" placeholder="" required>
+
+            <button id="button" type="submit">SUBMIT</button>
+        </form>
+    </div>
+ </div>
+    <!-- Java Script Functions -->
+    <script>
+        function hideErrorMessage(){
+            document.getElementById('error').innerText='';
+        }
+    </script>
+</body>
+</html>

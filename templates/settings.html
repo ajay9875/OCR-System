@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setting Options</title>
+    <style>
+        /*--- Home button Style --*/
+        .home{
+            height:65px;
+            width:55px;
+            margin: 10px;
+        }
+        .home img{
+            height:60px;
+            width:60px;
+            border-radius: 100%;
+        }
+        /*--- General Styles ---*/
+        body {
+            background-color: #f4f4f4;
+        }
+
+        img {
+            width: 30px;
+            height: 30px;
+            border-radius: 10px;
+        }
+
+        .edit-pic img {
+            border-radius: 100%;
+        }
+
+        /* Settings Options */
+        .container {
+            display: flex;
+            align-items: flex-start; /* Align items to the top */
+        }
+
+        .settings-options {
+            width: 17%;
+            border-radius: 20px;
+            border: groove 2px black;
+            padding: 25px;
+            background-color: rgb(252, 243, 243);
+            margin: 0px;
+        }
+
+        .settings-options ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .settings-options li {
+            margin-bottom: 50px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /*Edit Username Form Style*/
+        .edit-username input, label, button{
+           display:flex;
+           padding:5px;
+           margin-bottom: 5px;
+        }
+        .edit-username{
+            display:none;
+            width:fit-content;
+            padding:30px;
+            border: solid 1px #ddd;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            margin-left: 50px; /* Space between settings and form */
+
+        }
+        .edit-username button{
+            background-color:antiquewhite;
+            border-radius: 5px;
+        }
+        .edit-username button:hover{
+            background-color:green;
+        }
+
+        /* Form Styles */
+        .edit-pass, .edit-pic-form, .privacy-form{
+            width: 300px;
+            padding: 35px;
+            border: solid 1px #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            display: none; /* Initially hidden */
+            margin-left: 50px; /* Space between settings and form */
+            margin-top: 5px;
+        }
+        
+        .notification-form{
+            width: 300px;
+            padding: 25px;
+            border: solid 1px #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            display: none; /* Initially hidden */
+            margin-left: 50px; /* Space between settings and form */
+        }
+
+        .edit-pass div, .notification-section, .privacy-form div, .edit-pic-form{
+            margin-bottom: 15px;
+        }
+
+        .edit-pass label, .notification-section label, .privacy-form label{
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .edit-pass input, .notification-options input, .edit-pic-form input{
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .btn-submit, .btn-save {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-submit:hover, .btn-save:hover {
+            background-color: #0056b3;
+        }
+
+        /* Error message style */
+        #error{
+            color:red;
+            font-size: larger;
+            margin-left: 50px;            
+        }
+      
+        /* Success message style */ 
+        #success{
+            color:green;
+            margin-left: 50px;
+            font-size: larger;            
+        }
+        
+    </style>
+</head>
+<body>
+        <!-- Home Button-->
+        <div class="home">
+            <a href="/" class="btn"><img src="{{url_for('static',filename='css/homeicon.png')}}"></a>
+        </div><br>
+
+    <div class="container">
+        
+        <!-- Settings Options -->
+        <div class="settings-options">
+            <ul>
+                <li class="edit-pic">
+                    <img src="{{ url_for('static', filename='css/editPicicon.png') }}">
+                    <a href="#" onclick="showEditPicture(),hideErrorMessage()">Edit Picture</a>
+                </li>
+                <li class="change-pass">
+                    <img src="{{ url_for('static', filename='css/changePass.png') }}">
+                    <a href="#" onclick="showChangePassword()">Change Password</a>
+                </li>
+                <li class="manage-notification">
+                    <img src="{{ url_for('static', filename='css/manageNotifications.png') }}">
+                    <a href="#" onclick="showManageNotifications()">Manage Notifications</a>
+                </li>
+                <li class="privacy-settings">
+                    <img src="{{ url_for('static', filename='css/privacySettingicon.png') }}">
+                    <a href="#" onclick="showPrivacySettings()">Privacy Settings</a>
+                </li>
+            </ul>
+        </div>
+            <!-- Display flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category == 'success' %}
+                            <p id="success">{{ message }}</p>
+                        {% elif category == 'error' %}
+                            <p id="error">{{ message }}</p>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+        <!-- Edit Picture Form -->
+        <div class="edit-pic-form">
+            <form action="/update_profile_pic" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="form_type" value="editPic-form"> <!-- Hidden input to identify the form -->
+                
+                <div>
+                    <label for="profilePic">Upload New Profile Picture:</label>
+                    <input type="file" id="profilePic" name="profilePic" accept="image/*" required>
+                </div>
+                <button type="submit" class="btn-submit">Update Picture</button>
+            </form>
+        </div>
+
+        <!-- Change Password Form -->
+        <div class="edit-pass">
+            <form action="/action" method="POST">
+                        <!--To check the form type-->
+                        <input type="hidden" name="form_type" value="editPass-form"> <!-- Hidden input to identify the form -->
+                <div>
+                    <label for="currPassword">Enter Current Password:</label>
+                    <input id="currPassword" type="password" name="currpassword" required>
+                </div>
+                <div>
+                    <label for="newPassword">Enter New Password:</label>
+                    <input id="newPassword" type="password" name="newpassword" required>
+                </div>
+                <div>
+                    <label for="confirmPassword">Confirm New Password:</label>
+                    <input id="confirmPassword" type="password" name="confirmpassword" required>
+                </div>
+                <button type="submit" class="btn-submit">Update Password</button>
+            </form>
+        </div>
+
+        <!-- Manage Notifications Form -->
+        <div class="notification-form">
+    <form action="/action" method="POST">
+        <h2>Manage Notifications</h2>
+        <!--To check the form type-->
+        <input type="hidden" name="form_type" value="notification-form"> <!-- Hidden input to identify the form -->
+
+
+        <!-- Email Notifications Section -->
+        <div class="notification-section">
+            <label>Email Notifications</label>
+            <ul>
+                <li>
+                    <input type="checkbox" id="promotional-emails" name="email_promotional" checked>
+                    <label for="promotional-emails">Receive promotional emails</label>
+                </li>
+                <li>
+                    <input type="checkbox" id="account-updates" name="email_account_updates">
+                    <label for="account-updates">Account activity updates</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- SMS Notifications Section -->
+        <div class="notification-section">
+            <label>SMS Notifications</label>
+            <ul>
+                <li>
+                    <input type="checkbox" id="sms-alerts" name="sms_alerts">
+                    <label for="sms-alerts">Receive SMS alerts</label>
+                </li>
+                <li>
+                    <input type="checkbox" id="reminders" name="sms_reminders" checked>
+                    <label for="reminders">Receive reminders and alerts</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Push Notifications Section -->
+        <div class="notification-section">
+            <label>Push Notifications</label>
+            <ul>
+                <li>
+                    <input type="checkbox" id="news-updates" name="push_news_updates" checked>
+                    <label for="news-updates">Receive news updates</label>
+                </li>
+                <li>
+                    <input type="checkbox" id="special-offers" name="push_special_offers">
+                    <label for="special-offers">Receive special offers</label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Custom Preferences Section -->
+        <div class="notification-section">
+            <label for="preferred-time">Preferred Notification Time</label>
+            <select id="preferred-time" name="preferred_time">
+                <option value="morning">Morning</option>
+                <option value="afternoon">Afternoon</option>
+                <option value="evening">Evening</option>
+            </select>
+        </div>
+
+        <div class="notification-section">
+            <label for="custom-message">Custom Notification Message</label>
+            <textarea id="custom-message" name="custom_message" rows="4" placeholder="Enter your custom message here..."></textarea>
+        </div>
+        <!-- Submit Button -->
+        <button type="submit" class="btn-save">Save Preferences</button>
+    </form>
+</div>
+
+        <!-- Privacy Settings Form -->
+        <div class="privacy-form">
+            <form action="/action" method="POST">
+                <input type="hidden" name="form_type" value="privacy-form"> <!-- Hidden input to identify the form -->
+                <div>
+                    <label for="profileVisibility">Profile Visibility:</label>
+                    <select id="profileVisibility" name="profileVisibility">
+                        <option value="public">Public</option>
+                        <option value="friends-only">Friends Only</option>
+                        <option value="private">Private</option>
+                    </select>
+                </div>
+            
+                <button type="submit" class="btn-submit">Save Privacy Settings</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showEditPicture() {
+            toggleVisibility(".edit-pic-form");
+            hideErrorMessage();
+        }
+
+        function showEditUsername() {
+        toggleVisibility(".edit-username");
+        hideErrorMessage();
+        }
+
+        function showChangePassword() {
+            toggleVisibility(".edit-pass");
+            hideErrorMessage();
+        }
+
+        function showManageNotifications() {
+            toggleVisibility(".notification-form");
+            hideErrorMessage();
+        }
+
+        function showPrivacySettings() {
+            toggleVisibility(".privacy-form");
+            hideErrorMessage();
+        }
+
+        function toggleVisibility(selector) {
+            document.querySelectorAll(".edit-pass, .edit-username, .notification-form, .edit-pic-form, .privacy-form").forEach(el => el.style.display = "none");
+            const element = document.querySelector(selector);
+            element.style.display = "block";
+        }
+        //Hide error message onclick
+        function hideErrorMessage(){
+            document.getElementById('error').innerText='';
+            document.getElementById('success').innerText='';
+        }
+    </script>
+</body>
+</html>

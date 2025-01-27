@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Services - Online Course Reservation</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .services-header {
+            background-color: #007bff;
+            color: white;
+            height:100px;
+            text-align: center;
+        }
+        /*--- Home button Style --*/
+            .home{
+                height:65px;
+                width:55px;
+                margin: 10px;
+            }
+            .home img{
+                height:60px;
+                width:60px;
+                border-radius: 100%;
+            }
+
+            .main-content-class{
+                display:flex;
+            }
+
+        /*--- ---*/
+        .services-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .service-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .service-card img {
+            width: 80px;
+            height: 80px;
+            border-radius: 100%;
+            margin-bottom: 15px;
+        }
+
+        .service-card h5 {
+            margin: 10px 0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px 0;
+            background: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="services-header">
+        <h1>Our Services</h1>
+        <p>Explore the wide range of services we offer to enhance your learning experience.</p>
+    </div>
+    <div class="main-content-class">
+        <!-- Home Button-->
+      <div class="home">
+        <a href="/" class="btn"><img src="{{url_for('static',filename='css/homeicon.png')}}"></a>
+      </div>
+    </div>
+    <div class="services-container">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="service-card">
+                    <img src="static/css/course-enroll.jpg" alt="Course Enrollment">
+                    <h5>Course Enrollment</h5>
+                    <p>Easily browse and enroll in a variety of courses tailored to your needs.</p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="service-card">
+                    <img src="static/css/flexible-schedule.jpg" alt="Flexible Scheduling">
+                    <h5>Flexible Scheduling</h5>
+                    <p>Choose class schedules that suit your convenience and learning pace.</p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="service-card">
+                    <img src="static/css/progress-tracking.png" alt="Progress Tracking">
+                    <h5>Progress Tracking</h5>
+                    <p>Monitor your learning progress with detailed reports and analytics.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="service-card">
+                    <img src="static/css/certified.webp" alt="Certification">
+                    <h5>Certification</h5>
+                    <p>Earn recognized certifications upon successful course completion.</p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="service-card">
+                    <img src="static/css/expert-support.jpg" alt="Expert Support">
+                    <h5>Expert Support</h5>
+                    <p>Get guidance from experienced instructors and support staff.</p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="service-card">
+                    <img src="static/css/community-forums.png" alt="Community Forums">
+                    <h5>Community Forums</h5>
+                    <p>Join discussions with fellow learners to share knowledge and insights.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Online Course Reservation. All rights reserved.</p>
+    </footer>
+</body>
+</html>
