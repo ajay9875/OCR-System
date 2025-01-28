@@ -6,6 +6,9 @@
     <title>Admin Login</title>
 
     <style>
+.All{
+    display:flex;
+}
     /*--- Home button Style --*/
     .home{
         height:65px;
@@ -50,8 +53,7 @@ input {
         height:fit-content;
         border:groove 2px whitesmoke;
         padding:20px;
-        justify-self: center;
-        margin:20px;
+        margin:20px 400px;
         border-radius: 10px;
         background-color:rgb(235, 235, 230);
     }
@@ -67,9 +69,10 @@ input {
     </style>
 </head>
 <body>
+<div class="All">
     <!-- Home Button-->
     <div class="home">
-        <a href="/" class="btn"><img src="{{url_for('static',filename='css/homeicon.png')}}"></a>
+        <a href="/login" class="btn"><img src="{{url_for('static',filename='css/homeicon.png')}}"></a>
     </div>
     <!-- Admin Login Form -->
     <div class="Admin-loginpage">
@@ -79,28 +82,31 @@ input {
           <img src="static\css\loginicon.png">
         </div>
           <form method="POST" action="/adminLogin">
-              <!-- Error Message -->
-              {% with messages = get_flashed_messages() %}
-                  {% if messages %}
-                    {% for message in messages %}
-                       <label id="error" style="color:red">
-                          {{message}}
-                       </label>
-                    {% endfor %}
-                  {% endif %}
-              {% endwith %}
-              <br>
+<!-- Display flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            {% if category == 'error' %}
+                <p id="error" style="color:red"> {{ message }} </p> 
+            {% elif category == 'success' %}
+                <p id="success" style="color:green"> {{ message }} </p> 
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+              
+            <br>
               <div class="form-group">
-                  <label for="username">Username:</label>
-                  <input type="text" class="form-control" id="username" name="username" onclick="hideError_message()" required>
+                  <label for="username">Admin Name</label>
+                  <input type="text" class="form-control" id="username" name="username" onclick="hideError_message()" autocomplete="off" required>
               </div>
               <div class="form-group">
-                  <label for="password">Password:</label>
-                  <input type="password" class="form-control" id="password" name="password" required>
+                  <label for="password">Enter Password</label>
+                  <input type="password" class="form-control" id="password" name="password" autocomplete="off" required>
               </div>
               <div class="form-group">
-                <label for="securityPin">Security Pin:</label>
-                <input type="number" class="form-control" id="securityPin" name="securityPin" required>
+                <label for="securityPin">Security Pin</label>
+                <input type="password" class="form-control" id="securityPin" name="securityPin" autocomplete="off" required>
             </div>
   
               <!-- Submit Button -->
@@ -108,15 +114,17 @@ input {
   
               <!-- Additional Links -->
               <div class="link">
-                  <a href="/forgetpass">Forgot password?</a>
-                  <a href="/forgot_username">Forgot username?</a>
+                  <a href="/forgetAdminPass">Forgot Password?</a>
+                  <a href="/forgetAdminName">Forgot AdminName?</a>
+                  <a href="/forgetSecurityPin">Forgot Security Pin?</a>
               </div>
           </form>
        </div>
-
+    </div>
        <script>
           function hideError_message(){
             document.getElementById('error').innerText='';
+            document.getElementById('success').innerText='';
           }
        </script>
 </body>

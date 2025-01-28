@@ -28,8 +28,7 @@
 
         .admin-container {
             width: fit-content;
-            margin: auto;
-            margin-top: 20px;
+            margin:20px 200px;
             background: white;
             border-radius: 8px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
@@ -56,12 +55,16 @@
         .section {
             display: none;
             padding: 20px;
+            background:white;
+            width: fit-content;
+            justify-self: center;
+            border-radius: 10px;
         }
         .active {
             display: block;
         }
         table {
-            width: 100%;
+            width: fit-content;
             border-collapse: collapse;
             margin-top: 20px;
         }
@@ -143,9 +146,7 @@ h3{
     width:65px;
     margin-left: 95px;
 }
-#signup{
-    justify-content: center;
-    justify-self: center;
+#signup .addAdmin{
     height: fit-content;
     width:fit-content;
     padding:20px;
@@ -153,9 +154,7 @@ h3{
     border: solid 4px rgb(245, 234, 213)
 }
 
-
 /* Style for flashed-messages with their categories */
-/* Container for flash messages */
 .flash-container {
     width: 100%;
     max-width: 600px;
@@ -195,21 +194,7 @@ h3{
 /* Warning message styles */
 .flash-message.warning {
     color: #ff9800; /* Orange */
-}
-
-/* Session management page style */
-
-.session-control {
-            margin-top: 20px;
-            background-color: rgba(165, 165, 165, 0.644);
-            border: solid 4px rgb(245, 234, 213);
-            padding: 20px;
-        }
-
-        .session-control h3 {
-            color: #2196f3;
-        }
-      
+}     
         .btn-container #force-logout-btn {
             color: white;
             background-color: red;
@@ -235,6 +220,9 @@ h3{
           border-radius: 100%;
           margin-left: 1px;
         }
+        #signup,#users,#courses,#session,#enrolledCourse{
+            width: fit-content;
+        }
 
 </style>
 </head>
@@ -244,13 +232,21 @@ h3{
 
     <!-- Nav bar body -->
     <div class="nav">
-        <a href="#" onclick="showSection('signup')">Admin - Registration</a>
+        <a href="#" onclick="showSection('signup')">Manage Admins</a>
         <a href="#" onclick="showSection('users')">Manage Users</a>
         <a href="#" onclick="showSection('courses')">Manage Courses</a>
         <a href="#" onclick="showSection('session')">Manage Session</a>
         <a href="#" onclick="showSection('enrolledcourse')">Enrolled Courses</a>
         <a href="/adminLogout">Logout</a>
     </div>
+
+    <div class="adminName">    
+        {% if adminName %}
+            <label>Hello, {{ adminName }}</label>
+        {% else %}
+          <label>Hello, Guest</label>
+        {% endif %}
+    </div> 
     
     <!-- Home Button -->
     <div class="home">
@@ -270,12 +266,11 @@ h3{
     {% endif %}
     {% endwith %}
 
-
     <div class="admin-container">
         <!-- Admin Registration Section -->
         <div id="signup" class="section">
-            <h2>Admin Registration</h2>
-            <form method="POST" action="/registerAdmin">
+            <h2>Add new admin</h2>
+            <form method="POST" action="/registerAdmin" class="addAdmin">
                 <div class="signup-icon">
                     <img src="static\css\signupicon.png">
                 </div>
@@ -286,7 +281,7 @@ h3{
                 </div>
 
                 <div class="username-input">
-                    <label for="username">Enter Username</label>
+                    <label for="username">Enter Admin Name</label>
                     <input type="text" class="form-control" id="username" onclick="hideError_message()" name="username" required>
                 </div>
 
@@ -310,14 +305,47 @@ h3{
                     <input type="password" class="form-control" id="confirmpassword" name="confirmpassword" required>
                 </div>
                 <div class="cpass">
-                    <label for="securityPin" class="form-label">Generate Security Pin</label>
+                    <label for="securityPin" class="form-label">Create Security Pin</label>
                     <input type="number" class="form-control" id="securityPin" name="securityPin" required>
                 </div>
                 <div class="button">
                     <button class="button submit-button">Register</button>
                 </div>
             </form>
-        </div>
+
+                <!-- To show all users -->
+                {% if alladmins %}
+                  <h3>All Admins</h3>
+                        <table>
+                            <tr>
+                                <th>Serial No.</th>
+                                <th>Id</th>
+                                <th>Admin Name</th>
+                                <th>Email</th>
+                                <th>Phone Number</th>
+                                <th>Actions</th>
+                            </tr>
+                            {% for admin in alladmins %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ admin['id'] }}</td>
+                                <td>{{ admin['username'] }}</td>
+                                <td>{{ admin['email'] }}</td>
+                                <td>{{ admin['phone_number'] }}</td>
+                                <td>
+                                    <form method="POST" action="/deleteAdmin" class="deleteAdmin">
+                                        <input type="hidden" name="admin_id" value="{{ admin['id'] }}">
+                                        <button type="submit" class="delete-btn">Delete</button>
+                                    </form>
+                                </td>      
+                            </tr>
+                            {% endfor %}
+                        </table>
+                        {% else %}
+                            <p>No user to show, please add new user now.</p>
+                        {% endif %}
+                    </div>
+                </div>
 
         <!-- Manage Users Section -->
         <div id="users" class="section">

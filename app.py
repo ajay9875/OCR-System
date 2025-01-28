@@ -9,18 +9,43 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from datetime import datetime
 from email_validator import validate_email, EmailNotValidError
+from flask_talisman import Talisman
 
 # Initialize the Flask application
 app = Flask(__name__)
 app.secret_key = os.environ.get('secret_key', '')
 
+# Flask-Talisman for security headers and HTTPS enforcement
+talisman = Talisman(app, content_security_policy=None)
+
+# Session cookie settings
+app.config["SESSION_COOKIE_SECURE"] = True  # Ensures cookies are sent over HTTPS
+app.config["SESSION_COOKIE_HTTPONLY"] = True  # Protects cookies from JavaScript access
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # Protects against CSRF in cross-site contexts
+
 # Prevent denial-of-service (DoS) attacks by limiting the size of incoming requests
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB limit
 
 #------ All functions to create database using sqlite3 ------
-USERS_DB = "users.db"
-ADMIN_DB = "admins.db"
+import time
 
+def execute_with_retry(db, query, params=(), retries=3, delay=0.1):
+    for attempt in range(retries):
+        try:
+            cursor = db.cursor()
+            cursor.execute(query, params)
+            db.commit()
+            return True
+        except sqlite3.OperationalError as e:
+            if "database is locked" in str(e):
+                time.sleep(delay)
+            else:
+                raise
+    raise Exception("Max retries exceeded for database operation.")
+
+
+
+USERS_DB = "users.db"
 # Separate database connection functions for each database
 
 def get_db():
@@ -30,14 +55,6 @@ def get_db():
         #db.execute('PRAGMA journal_mode=WAL')  # Enable WAL mode
         g.users_db.row_factory = sqlite3.Row
     return g.users_db
-
-# Database for admin details, login id, password etc.
-def get_admin_db():
-    """Returns a database connection to the users database."""
-    if not hasattr(g, 'admin_db'):
-        g.admin_db = sqlite3.connect(ADMIN_DB)
-        g.admin_db.row_factory = sqlite3.Row
-    return g.admin_db
 
 # Function to define shema and create database for reserved courses 
 RESERVED_COURSES_DB = "reservedcourses.db"
@@ -69,6 +86,15 @@ def create_reserved_courses_database():
         
 # Calling to create database for courses 
 create_reserved_courses_database()
+
+# Database for admin details, login id, password etc.
+ADMIN_DB = "admins.db"
+def get_admin_db():
+    """Returns a database connection to the users database."""
+    if not hasattr(g, 'admin_db'):
+        g.admin_db = sqlite3.connect(ADMIN_DB)
+        g.admin_db.row_factory = sqlite3.Row
+    return g.admin_db
 
 # Function to define shema and create database for admin 
 def create_admin_database():
@@ -217,14 +243,28 @@ def adminDashboard():
     cursor = db1.cursor()
     cursor.execute('SELECT * FROM allcourses')
     allcourses = cursor.fetchall()
-    db.close()
+    db1.close()
    
     # To retrieve All sessions data
     db2 = get_sessions_db()
     cursor = db2.cursor()
     cursor.execute('SELECT * FROM sessions')
     allsessions = cursor.fetchall()
+    db2.close()
+    
+    # Fetch all reserved courses for admin
+    db3 = get_reserved_courses_db()
+    cursor = db3.cursor()
+    cursor.execute("SELECT * FROM reservedcourses")
+    allenrolledcourses = cursor.fetchall()
     db.close()
+    
+    # To retrieve All admins data
+    db4 = get_admin_db()
+    cursor = db4.cursor()
+    cursor.execute('SELECT * FROM admins')
+    alladmins = cursor.fetchall()
+    db4.close()
     
     # Check if any session has 'logged_in' == True
     active = 0
@@ -232,15 +272,12 @@ def adminDashboard():
         if sessions['logged_in'] == 1:  # Access 'logged_in' as a key
             active = 1
 
-    # Fetch all reserved courses for admin
-    db3 = get_reserved_courses_db()
-    cursor = db3.cursor()
-    cursor.execute("SELECT * FROM reservedcourses")
-    allenrolledcourses = cursor.fetchall()
-    db.close()
+    adminName = session.get('admin_name')
     response = make_response(
         render_template(
             'adminDashboard.html',
+            adminName = adminName,
+            alladmins = alladmins,
             allcourses = allcourses,
             allusers = allusers,
             allsessions = allsessions,
@@ -260,7 +297,6 @@ def adminDashboard():
 @app.route('/registerAdmin', methods=['GET', 'POST'])
 def registerAdmin():
     if 'admin_id' not in session:
-        flash("Admin registered successfully!")
         return redirect(url_for("adminLogin"))
     if request.method == 'POST':
         username = request.form.get('username')
@@ -274,18 +310,41 @@ def registerAdmin():
             return render_template('adminDashboard.html', error_message="Passwords do not match")
 
         hashed_password = generate_password_hash(password)
+        hashed_pin = generate_password_hash(securityPin)
 
         try:
             db = get_admin_db()
             cursor = db.cursor()
             cursor.execute("INSERT INTO admins (username, email, phone_number, password, securityPin) VALUES (?, ?, ?, ?, ?)",
-                           (username, email, phone_number, hashed_password, securityPin))
+                           (username, email, phone_number, hashed_password, hashed_pin))
             db.commit()
+            db.close()
             flash("Admin registered successfully!",'success')
             return redirect(url_for("adminDashboard"))
         except sqlite3.IntegrityError:
             flash("Admin already Exist!",'error')
             return redirect(url_for("adminDashboard"))
+        
+# Delete Admin by admin
+# Registration page for admin
+@app.route('/deleteAdmin', methods=['POST'])
+def deleteAdmin():
+    if 'admin_id' not in session:
+        return redirect(url_for("adminLogin"))
+    if request.method == 'POST':
+        admin_id = request.form.get('admin_id')
+
+        if admin_id:
+            db = get_admin_db()
+            cursor = db.cursor()
+            cursor.execute('''DELETE FROM admins 
+                           WHERE id = ?''',(admin_id))
+            db.commit()
+            db.close()
+            flash("Admin deleted successfully!",'success')
+            return redirect(url_for("adminDashboard"))
+        flash("Admin id does not exist!",'error')
+        return redirect(url_for("adminDashboard"))
         
 # Login route for admin
 @app.route('/adminLogin', methods=['GET', 'POST'])
@@ -305,19 +364,149 @@ def adminLogin():
             stored_password = admin['password']
             stored_security_pin = str(admin['securityPin'])  # Convert to string for comparison
 
-            if check_password_hash(stored_password, password) and stored_security_pin == str(securityPin):
+            if check_password_hash(stored_password, password) and check_password_hash(stored_security_pin,securityPin):
                 session.permanent = True  # Keep session active
                 session['admin_id'] = admin['id']
-                session['username'] = admin['username']
+                session['admin_name'] = admin['username']
                 flash('Login successful!', 'success')
-                return redirect(url_for('adminDashboard'))
+                db.close()        
 
+                return redirect(url_for('adminDashboard'))
+        db.close()        
         # Flash message and redirect on failure
         flash('Invalid Credentials!', 'error')
         return redirect(url_for("adminLogin"))
 
     return render_template('adminLogin.html')
 
+# Route and handle forget password for admin 
+@app.route('/forgetAdminPass', methods=['GET', 'POST'])
+def forgetAdminPass():
+    if request.method == 'POST':
+        admin_name = request.form.get('admin_name')
+        email = request.form.get('email')
+        securityPin = request.form.get('securityPin')
+        newpassword = request.form.get('newpassword')
+        confirmpassword = request.form.get('confirmpassword')
+
+        if not (admin_name and email and securityPin and newpassword):
+            flash("All fields are required!", "error")
+            return redirect(url_for('forgetAdminPass'))
+
+        if len(newpassword) < 6:
+            flash("Passwords must be at least 6 characters long!", "error")
+            return redirect(url_for('forgetAdminPass'))
+
+        if newpassword != confirmpassword:
+            flash("Passwords do not match!", "error")
+            return redirect(url_for('forgetAdminPass'))
+
+        with app.app_context():
+            db = get_admin_db()
+            cursor = db.cursor()
+            # Check if admin exists
+            cursor.execute('''SELECT username, email, securityPin
+                           FROM admins WHERE username = ?''', (admin_name,))
+            admin = cursor.fetchone()
+
+        if admin and email == str(admin[1]) and securityPin == str(admin[2]):
+            # Update password
+            hashed_password = generate_password_hash(newpassword)
+            cursor.execute('''UPDATE admins
+                                SET password = ?
+                                WHERE username = ?''', (hashed_password, admin_name))
+            db.commit()
+            db.close()
+            flash("Password updated successfully!", "success")
+            return redirect(url_for('adminLogin'))
+        else:
+            db.close()
+            flash("Invalid Admin name or email or security pin!", "error")
+            return redirect(url_for('forgetAdminPass'))
+
+    return render_template('forgetAdminPass.html')
+
+# Forget Admin Name for admin
+@app.route('/forgetAdminName', methods=['GET', 'POST'])
+def forgetAdminName():
+    if request.method == 'POST':
+        # Retrieve form data
+        email = request.form.get('email')
+        securityPin = request.form.get('securityPin')
+        password = request.form.get('password')
+        admin_name = request.form.get('admin_name')
+
+        # Validate input fields
+        if not (email and securityPin and password and admin_name):
+            flash("All fields are required!", "error")
+            return redirect(url_for('forgetAdminName'))
+
+        # Connect to the database
+        with app.app_context():
+            db = get_admin_db()
+            cursor = db.cursor()
+            # Check if admin exists
+            cursor.execute('''SELECT email, securityPin, password FROM admins WHERE email = ?''', (email,))
+            admin = cursor.fetchone()
+ 
+        if admin and securityPin == str(admin[1]) and check_password_hash(admin[2],password):
+            cursor.execute('''UPDATE admins SET username = ? WHERE email = ?''', (admin_name, email))
+            db.commit()
+            db.close()
+            flash("Admin Name updated successfully!", "success")
+            return redirect(url_for('adminLogin'))
+        else:
+            db.close()
+            flash("Invalid email or phone number or password!", "error")
+            return redirect(url_for('forgetAdminName'))
+
+    return render_template('forgetAdminName.html')
+
+# Forget security pin for Admin
+@app.route('/forgetSecurityPin', methods=['GET','POST'])
+def forgetSecurityPin():
+    if request.method == 'POST':
+        admin_name = request.form.get('admin_name')
+        email = request.form.get('email')
+        phone_number = request.form.get('phone_number')
+        password = request.form.get('password')
+        newsecurityPin = request.form.get('securityPin')
+
+        # Validate input fields
+        if not (admin_name and email and phone_number and password and newsecurityPin):
+            flash("All fields are required!", "error")
+            return redirect(url_for('forgetSecurityPin'))
+        
+        if len(newsecurityPin) < 6:
+            flash("Security pin must be at least 6 characters long!", "error")
+            return redirect(url_for('forgetSecurityPin'))
+        
+        # Connect to the database
+        with app.app_context():
+            db = get_admin_db()
+            cursor = db.cursor()
+
+            # Check if admin exists
+            cursor.execute('''SELECT username, email, phone_number, password  FROM admins 
+                            WHERE username = ?''', (admin_name,))
+            admin = cursor.fetchone()
+
+        if admin and email == admin[1] and phone_number == str(admin[2]) and check_password_hash(admin[3],password):
+            hashed_pin = generate_password_hash(newsecurityPin)
+            cursor.execute('''UPDATE admins
+                                SET securityPin = ?
+                                WHERE username = ?''', (hashed_pin, admin_name))
+            db.commit()
+            db.close()
+            flash("Security Pin updated successfully!", "success")
+            return redirect(url_for('adminLogin'))
+        else:
+            db.close()
+            flash("Invalid admin name or email or phone number or password!", "error")
+            return redirect(url_for('forgetSecurityPin'))
+
+    return render_template('forgetSecurityPin.html')
+    
 # Adding new user by admin
 @app.route('/newUser', methods=['POST'])
 def newUser():
@@ -520,11 +709,17 @@ def deleteEnrolledCourse():
         db = get_reserved_courses_db()
         cursor = db.cursor()
         
-        cursor.execute('DELETE FROM reservedcourses WHERE id= ?',(id,))
-        db.commit()
-        
-        flash('Selected enrolled course deleted successfully!','success')
-        return redirect(url_for('adminDashboard'))
+        if id:   
+            cursor.execute('DELETE FROM reservedcourses WHERE id= ?',(id,))
+            db.commit()
+            db.close()
+            flash('Selected enrolled course deleted successfully!','success')
+            return redirect(url_for('adminDashboard'))
+        else:
+            flash('Id not found for selected course!','success')
+            return redirect(url_for('adminDashboard'))
+    else:
+        return None
     
 # Route to foce logout by admin
 @app.route('/forceLogout',methods=['POST'])
@@ -1267,7 +1462,7 @@ def reserve_course():
         flash('Course reserved successfully!','success')
         return redirect(url_for('home'))
 
-# Remove a reserved course
+# Remove a reserved course by user
 @app.route('/removeCourse', methods=['POST'])
 def remove_course():
     if 'user_id' not in session:
@@ -1298,3 +1493,4 @@ def remove_course():
 #----------  To Run the server  -----------
 if __name__ == "__main__":
     app.run(threaded=True, debug=False, host='0.0.0.0', port=80)
+    
