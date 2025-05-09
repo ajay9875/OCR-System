@@ -128,6 +128,7 @@ input {
     }
     .Loginpage button:hover{
         background-color:rgb(91, 245, 44);
+        cursor: pointer;
     }
 
     .logo-image{
@@ -201,7 +202,7 @@ input {
     
   <div class="right-side">
    <div class="logo-image-greet">
-    <div class="greet">
+<div class="greet">
 <!-- Flash messages -->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
@@ -220,8 +221,7 @@ input {
     {% endfor %}
   {% endif %}
 {% endwith %}
-
-    </div>
+</div>
     <div class="logo-image">
         <img src="static\css\logo.jpg">
       </div>
@@ -236,7 +236,7 @@ input {
         <form method="POST" action="/login">
             <div class="form-group">
                 <label for="username">Enter Username</label>
-                <input type="text" class="form-control" id="username" name="username" onclick="hideError_message()" required>
+                <input type="text" class="form-control" id="username" name="username" onclick="hideError_message();" required>
             </div>
             <div class="form-group">
                 <label for="password">Enter Password</label>
@@ -259,8 +259,7 @@ input {
       <script>
       // Function to hide the error oninput in the username box
       function hideError_message() {
-        document.getElementById('error').innerHTML='';
-        document.getElementById('greet').style.visibility = "hidden";
+        document.querySelector('.greet').style.display = "none";
       }
       
       </script>

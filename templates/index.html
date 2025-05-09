@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Course Recommendation System</title>
+</head>
+<body>
+     
+    <div class="upper">
+        <div id="main">
+            <button class="opensidebarbtn" onclick="toggleSidebar()">&#9776;</button>
+        </div>
+    
+        <div class="greeting">
+            {% if username %}
+                <p id="username">Hello, {{ username }}!</p>
+            {% else %}
+                <p id="username">Hello, Guest!</p>
+            {% endif %}
+            <p id="message">Welcome to our Online Course Recommendation System. Your gateway to quality learning and career growth.</p>
+        </div>
+
+        <div id="mySidebar" class="sidebar">
+            <a href="{{ sidebar_links['home'] }}">Home</a>
+            <a href="{{ sidebar_links['about'] }}">About Us</a>
+            <a href="{{ sidebar_links['services'] }}">Services</a>
+            <a href="{{ sidebar_links['contact'] }}">Contact Us</a>
+        </div>
+
+        <div class="profile-body">
+            <div class="profile-btn">
+                <button class="btn" id="btn" onclick="toggleProfileDetails()">
+                  {% if user.profile_pic %}
+                    <img src="{{ url_for('static', filename='uploads/' + user.profile_pic) }}" alt="" class="profile-pic">
+                  {% else %}
+                    <img style="background-color: rgba(160, 160, 160, 0.692);" src="{{ url_for('static', filename='default_profile.png') }}" alt="" class="profile-pic">
+                  {% endif %}
+                </button>
+                <div class="active"></div>
+                <div class="pname">
+                    {% if username %}
+                        <p>{{ username }}</p>
+                    {% else %}
+                        <p> Guest </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="profile-details">
+                <a href="/yourInfo">Your Information</a>
+                <br> <br> 
+                <a href="{{ url_for('reservedCourses') }}">Your Courses</a>
+                <br> <br> 
+                <a href="/showSettings">Settings</a>
+                <br> <br>
+                <!-- Logout Form -->
+                <form action="/logout" method="POST">
+                    <button type="submit" class="logoutBtn">Log Out</button>
+                </form> 
+            </div>
+        </div>
+    </div>
+    <!-- Success message on reserving courses and link to see all reserved courses -->
+        <a style="color:rgb(236, 8, 46)" href="{{url_for('reservedCourses')}}">Reserved Courses</a>
+    <div class="search-box">
+        <form method="POST" action="/">
+            <div class="search-container">
+                <input type="text" id="input-box" name="course" placeholder="Type here to get course recommendation with AI" autocomplete="off" required>
+                <button type="submit">AI</button>
+            </div>
+        </form>
+        <div class="result-box"></div>
+    </div>
+   </div>
+
+   <!-- Recommended  Courses-->
+   <div class="allcourse">
+    <h2>Recommended Courses</h2>
+   {% if allcourses and allcourses | length > 0 %}
+   <h3>All Recommended Courses</h3>
+   <table>
+       <thead>
+           <tr>
+               <th>SL.No.</th>
+               <th>ID</th>
+               <th>Course Code</th>
+               <th>Course Name</th>
+               <th>Course Unit</th>
+               <th>Seat Limit</th>
+               <th>Actions</th>
+           </tr>
+       </thead>
+       <tbody>
+           {% for course in allcourses %}
+           <tr>
+               <td>{{ loop.index }}</td>
+               <td>{{ course['id'] }}</td>
+               <td>{{ course['course_code'] }}</td>
+               <td>{{ course['course_name'] }}</td>
+               <td>{{ course['course_unit'] }}</td>
+               <td>{{ course['seat_limit'] }}</td>
+               <td>
+                   <div class="reserve-course">
+                       <form method="POST" action="/reserve_course">
+                           <input type="hidden" name="id" value="{{ course['id'] }}">
+                           <input type="hidden" name="course_code" value="{{ course['course_code'] }}">
+                           <input type="hidden" name="course_name" value="{{ course['course_name'] }}">
+                           <input type="hidden" name="course_unit" value="{{ course['course_unit'] }}">
+                           <input type="hidden" name="seat_limit" value="{{ course['seat_limit'] }}">
+                           <button type="submit" id="reserve-btn">Reserve</button>
+                       </form>
+                   </div>
+               </td>
+           </tr>
+           {% endfor %}
+       </tbody>
+   </table>
+   {% else %}
+   <p>No Courses Recommended yet, please search with AI now.</p>
+   {% endif %}
+   </div>
+<!-- To show flashed message with their categories -->
+<div class="flashed-messages">
+   {% with messages = get_flashed_messages(with_categories=True) %}
+   {% if messages %}
+       {% for category, message in messages %}
+           {% if category == 'success' %}
+               <h3 style="color:green">{{ message }}</h3>
+           {% elif category == 'error' %}
+               <h3 style="color:red">{{ message }}</h3>
+           {% elif category == 'warning' %}
+               <h3 style="color:orange">{{ message }}</h3>
+           {% else %}
+               <h3 style="color:black">{{ message }}</h3>
+           {% endif %}
+       {% endfor %}
+   {% endif %}
+   {% endwith %}
+</div>
+
+    <!-- All Java Script Functions -->
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById("mySidebar");
+            const main = document.getElementById("main");
+
+            if (sidebar.style.width === "250px") {
+                sidebar.style.width = "0";
+                main.style.marginLeft = "0";
+            } else {
+                sidebar.style.width = "250px";
+                main.style.marginLeft = "250px";
+            }
+        }
+
+        function toggleProfileDetails() {
+            const profileDetails = document.querySelector('.profile-details');
+            profileDetails.classList.toggle("show");
+        }
+
+        function showEmpty(){
+            document.getElementById('input-box').value="";
+        }
+      
+        let availableKeywords = [
+            'HTML and CSS Fundamentals', 'JavaScript Programming', 'Responsive Web Design',
+            'Front-End Development', 'Back-End Development', 'Full-Stack Web Development',
+            'React.js Development', 'Node.js and Express.js', 'Angular Framework', 
+            'Vue.js Fundamentals', 'Bootstrap for UI Design', 'Web APIs Integration',
+            'Database Management with SQL', 'MongoDB and NoSQL Databases', 'Version Control with Git',
+            'Web Hosting and Deployment', 'Android App Development', 'Java for Android',
+            'Kotlin for Android', 'Flutter Development', 'React Native Development',
+            'Android Studio Basics', 'Mobile UI/UX Design', 'RESTful API Integration',
+            'Firebase Integration', 'Artificial Intelligence', 'Machine Learning',
+            'Deep Learning', 'Neural Networks', 'Natural Language Processing (NLP)',
+            'Computer Vision', 'Data Science', 'Reinforcement Learning',
+            'Python', 'R Programming', 'TensorFlow', 'Keras', 'PyTorch', 
+            'OpenCV', 'Scikit-learn', 'Pandas', 'NumPy', 
+            'Matplotlib', 'ChatGPT', 'Large Language Models (LLM)', 
+            'Edge AI', 'AI in Robotics', 'AI in IoT', 
+            'AI Ethics', 'Explainable AI', 'AI Automation', 'Big Data Analytics',
+            'ML Algorithms Implementation', 'Face Recognition System', 
+            'AI Chatbot Development', 'Spam Detection', 'Sentiment Analysis', 
+            'Stock Price Prediction', 'Recommendation Systems', 
+            'Object Detection', 'Speech Recognition', 'AI in Healthcare', 'AI in Education',
+            'AI in Cybersecurity', 'AI for Autonomous Vehicles', 
+            'AI for Climate Change', 'AI and Quantum Computing', 
+            'AI for Smart Cities', 'Human-AI Collaboration', 
+            'AI Bias and Fairness', 'Federated Learning', 'Google Colab', 
+            'Jupyter Notebook', 'Azure Machine Learning', 
+            'AWS SageMaker', 'IBM Watson', 'MATLAB for AI', 
+            'AutoML Tools', 'AI Model Deployment',
+            "Web Development", "Build responsive websites using HTML CSS and JavaScript.", "Frontend Development", "Beginner", "12", "HTML CSS and JavaScript for UI/UX", 
+            "Data Science", "Learn Python and SQL with AI & ML for data analysis and visualization.", "Data Analysis", "Intermediate", "16", "Python and SQL with Machine Learning for Data Visualization", 
+            "Artificial Intelligence", "Master deep learning and neural networks for AI automation.", "AI & ML", "Advanced", "20", "AI and Deep Learning with Neural Networks and LLMs", 
+            "Cloud Computing", "Learn AWS Azure and Google Cloud for scalable solutions.", "IT Infrastructure", "Intermediate", "14", "AWS and Azure with Google Cloud and DevOps", 
+            "Cyber Security", "Protect systems from cyber threats with ethical hacking.", "Security", "Advanced", "18", "Ethical Hacking and Network Security and Cryptography", 
+            "Python for Data Science", "Learn Python programming for data analytics and automation.", "Software Development", "Beginner", "10", "Python for Data Analysis and Automation", 
+            "Java for Web Development", "Learn Java for backend development and web applications.", "Software Development", "Intermediate", "14", "Java with OOP for Backend Development", 
+            "Blockchain Development", "Explore blockchain technology for smart contracts and decentralized finance (DeFi).", "Blockchain Technology", "Advanced", "18", "Blockchain for Smart Contracts and Cryptography", 
+            "DevOps Engineering", "Master CI/CD with Docker and Kubernetes for DevOps automation.", "IT Infrastructure", "Intermediate", "16", "CI/CD and Docker with Kubernetes", 
+            "UI/UX Design", "Create user-friendly designs with prototyping and wireframing.", "UI-Design", "Beginner", "12", "Wireframing and Prototyping for UX Research", 
+            "Game Development", "Build games using Unity and Unreal Engine.", "Software Development", "Intermediate", "20", "Unity and Unreal Engine to Game Design", 
+            "Internet of Things (IoT)", "Learn IoT protocols with embedded systems and cloud integration.", "Networking", "Intermediate", "14", "Embedded Systems and IoT Protocols with Cloud Integration", 
+            "Software Testing", "Learn manual and automated testing using Selenium.", "Software Development", "Beginner", "12", "Manual Testing and Automation and Selenium", 
+            "Big Data Analytics", "Process large datasets with Hadoop and Apache Spark.", "Data Analysis", "Advanced", "18", "Hadoop and Apache Spark for Data Warehousing", 
+            "Quantum Computing", "Learn quantum algorithms and cryptography.", "Emerging Technology", "Advanced", "22", "Quantum Algorithms and Qubit Operations with Quantum Cryptography", 
+            "Digital Marketing", "Master SEO and SEM with content marketing for effective digital campaigns.", "Marketing Technology", "Intermediate", "14", "SEO and SEM for Content Marketing with Google Analytics", 
+            "Mobile App Development", "Learn how to build mobile applications using Kotlin and Swift.", "Software Development", "Beginner", "12", "Kotlin and Groovy Swift for Mobile App Development and UI Design", 
+            "Augmented Reality (AR) Development", "Create immersive AR experiences using Unity and ARKit.", "Emerging Technology", "Intermediate", "16", "AR Development and Unity with ARKit in Computer Vision", 
+            "3D Modeling and Animation", "Learn to create 3D models and animations using Blender and Maya.", "Design", "Beginner", "12", "Blender and Maya with 3D Modeling and Animation", 
+            "Deep Learning for Computer Vision", "Master neural networks and computer vision techniques for image processing.", "AI & ML", "Advanced", "20", "Deep Learning and Neural Networks with Computer Vision and TensorFlow", 
+            "Robotics and Automation", "Learn to design and program robots with sensors and actuators for automation.", "Emerging Technology", "Advanced", "18", "Robotics and Sensors for Automation Arduino with Robotics Programming", 
+            "Network Administration", "Understand network protocols devices and troubleshooting techniques for network management.", "IT Infrastructure", "Intermediate", "14", "Network Management and Routing and Switching and Troubleshooting", 
+            "Game AI Development", "Learn to develop artificial intelligence for game characters and environments.", "Software Development", "Intermediate", "16", "Game AI and Pathfinding with Behavior Trees and Unity", 
+            "Data Engineering", "Master the art of building scalable data pipelines with Python and SQL.", "Data Analysis", "Intermediate", "18", "Python and SQL with Data Pipelines and ETL", 
+            "Cloud Security", "Learn how to secure cloud environments and protect data in the cloud.", "Security", "Advanced", "16", "Cloud Security and Azure Data Protection", 
+            "Digital Forensics", "Explore techniques for investigating cybercrime and gathering digital evidence.", "Security", "Advanced", "18", "Digital Forensics with Cybersecurity in Incident Response and Data Recovery", 
+            "Artificial Intelligence for Robotics", "Apply AI techniques to build autonomous robots and systems.", "AI & ML", "Advanced", "20", "Robotics AI and Machine Learning for Autonomous Systems", 
+            "Blockchain for Supply Chain", "Learn how blockchain can optimize supply chain management and transparency.", "Blockchain Technology", "Intermediate", "14", "Blockchain Supply Chain Management and Smart Contracts with Transparency", 
+            "Python for Automation", "Automate repetitive tasks and processes using Python scripts.", "Software Development", "Beginner", "10", "Python and Automation with Scripting and Task Automation", 
+            "Natural Language Processing (NLP)", "Understand and apply NLP techniques to analyze and generate human language.", "AI & ML", "Intermediate", "18", "NLP and Text Mining with Machine Learning and Language Models", 
+            "Enterprise Resource Planning (ERP)", "Learn how to integrate business processes using ERP software like SAP.", "IT Infrastructure", "Intermediate", "16", "ERP SAP for Business Process Integration with Data Management", 
+            "Introduction to Quantum Computing", "Get an introduction to quantum computing and its potential impact on technology.", "Emerging Technology", "Beginner", "12", "Quantum Computing and Qubits with Quantum Algorithms for Cryptography", 
+            "Cybersecurity Risk Management", "Learn to assess and manage risks in cybersecurity environments.", "Security", "Advanced", "18", "Risk Management in Cybersecurity for Threat Assessment and Compliance", 
+            "DevOps for Developers", "Learn DevOps practices and tools to automate software development and deployment.", "IT Infrastructure", "Intermediate", "14", "DevOps and CI/CD with Jenkins Docker and Kubernetes", 
+            "Creative Coding for Interactive Art", "Use code to create interactive digital art and visualizations.", "Innovative Design", "Beginner", "10", "Creative Coding and Interactive Art for Processing and Visualization", 
+            "Machine Learning", "Learn supervised & unsupervised and reinforcement learning. Learn to deal with real world applications", "Machine Learning Technology", "Intermediate", "20", "All machine learning algorithms and techniques"
+
+        ];
+
+        const resultsBox = document.querySelector(".result-box");
+        const inputBox = document.getElementById("input-box");
+      
+        inputBox.onkeyup = function(){
+            let result = [];
+            let input = inputBox.value;
+            if(input.length){
+                result = availableKeywords.filter((keyword)=>{
+                    return keyword.toLowerCase().includes(input.toLowerCase());
+                });
+            }
+            display(result);
+            if(!result.length){
+                resultsBox.innerHTML = '';
+            }
+        }
+
+        function display(result){
+            const content = result.map((list)=>{
+                return "<li onclick=selectInput(this)>" + list + "</li>";
+            });
+            resultsBox.innerHTML = "<ul>" + content.join('') + "</ul>";
+        }
+      
+        function selectInput(list){
+            inputBox.value = list.innerHTML;
+            resultsBox.innerHTML = '';
+        }
+
+        $(document).ready(function() {
+            $('#logoutBtn').click(function() {
+                window.location.href = "{{ url_for('logout') }}";
+            });
+        });
+    </script>
+</body>
+</html>

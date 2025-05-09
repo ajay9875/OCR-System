@@ -7,11 +7,14 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 import sqlite3
 import pytz
-import re
 import os
+import uuid
+from dotenv import load_dotenv
+load_dotenv()
+
 # Initialize the Flask application
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY')
+app.secret_key = os.getenv('SECRET_KEY')
 
 # Session cookie settings
 app.config["SESSION_COOKIE_SECURE"] = True  # Ensures cookies are sent over HTTPS
@@ -164,9 +167,15 @@ def create_sessions_database():
         cursor = db.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS sessions (
-                session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id TEXT NOT NULL,
                 user_id INTEGER NOT NULL,
-                login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                user_name TEXT,
+                admin_name TEXT,
+                IP_address TEXT NOT NULL,
+                logged_in BOOLEAN,
+                login_time TEXT NOT NULL,
+                logout_time TEXT,
+                active_time TEXT,
                 FOREIGN KEY (user_id) REFERENCES users(user_id)
             )
         """)
@@ -178,19 +187,6 @@ create_reserved_courses_database()
 create_admin_database()
 create_allcourses_database()
 create_sessions_database()
-        
-def enable_wal_mode(db_path):
-    conn = sqlite3.connect(db_path)
-    conn.execute("PRAGMA journal_mode=WAL;")
-    conn.close()
-
-# Enable WAL for each database
-# Enable WAL for each database in the correct 'database' folder
-enable_wal_mode(ADMIN_DB)
-enable_wal_mode(USERS_DB)
-enable_wal_mode(SESSIONS_DB)
-enable_wal_mode(RESERVED_COURSES_DB)
-enable_wal_mode(ALLCOURSES_DB)
 
 # Close connections properly
 @app.teardown_appcontext
@@ -877,66 +873,69 @@ def get_ip_address():
     if 'X-Forwarded-For' in request.headers:
         user_ip = request.headers['X-Forwarded-For'].split(',')[0]
     return user_ip
-import uuid
 # Handle login credentials
 @app.route('/login', methods=["POST", "GET"])
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-       
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute('''SELECT user_id, username, password
-                       FROM users WHERE username = ?''',
-                       (username,)
-                       )
-        user = cursor.fetchone()
-
-        if user and check_password_hash(user[2], password):
-            # Capture the user's IP address
-            session.permanent = True
-            session_id = str(uuid.uuid4())
-
-            user_ip = get_ip_address()
-            
-            # Store the username and IP in the session
-            session['user_id'] = user[0]
-            session['session_id'] = session_id
-            session['username'] = user[1]
-
-            session['ip_address'] = user_ip
-            
-            login_time = datetime.now()
-            logged_in = True
-            
-            db = get_sessions_db()
-            cursor = db.cursor()
-            user_name = cursor.execute('''SELECT user_name FROM sessions
-                                          WHERE user_name = ?''',
-                (username,)
-            ).fetchone()  # Check if the session for the user exists
-
-            if user_name:
-                # Update the existing session
-                cursor.execute(
-                    "UPDATE sessions SET IP_address = ?,logged_in = ?, login_time = ? WHERE user_name = ?",
-                    (user_ip, logged_in, login_time, user_name)
-                )
-            else:
-                # Insert a new session if no existing session is found
-                cursor.execute(
-                    '''INSERT INTO sessions (session_id, IP_address, user_name, logged_in, login_time) 
-                    VALUES (?, ?, ?, ?, ?)''',
-                    (session_id, user_ip, user_name, logged_in, login_time)
-                )
-
-            db.commit()
-            flash('Logged in successfully!','success')
-            return redirect(url_for('home'))
         
-        # Handle invalid login
-        return render_template('dashboard.html', error_message="Invalid username or password!")
+        try:
+            db = get_db()
+            cursor = db.cursor()
+            cursor.execute('''SELECT user_id, username, password
+                        FROM users WHERE username = ?''',
+                        (username,)
+                        )
+            user = cursor.fetchone()
+
+            if user and check_password_hash(user[2], password):
+                # Capture the user's IP address
+                session.permanent = True
+                session_id = str(uuid.uuid4())
+
+                user_ip = get_ip_address()
+                
+                # Store the username and IP in the session
+                session['user_id'] = user[0]
+                session['session_id'] = session_id
+                session['username'] = user[1]
+
+                session['ip_address'] = user_ip
+                
+                login_time = datetime.now()
+                logged_in = True
+                
+                db = get_sessions_db()
+                cursor = db.cursor()
+                user_name = cursor.execute('''SELECT user_name FROM sessions
+                                            WHERE user_name = ?''',
+                    (username,)
+                ).fetchone()  # Check if the session for the user exists
+
+                if user_name:
+                    # Update the existing session
+                    cursor.execute(
+                        "UPDATE sessions SET IP_address = ?,logged_in = ?, login_time = ? WHERE user_name = ?",
+                        (user_ip, logged_in, login_time, user_name)
+                    )
+                else:
+                    # Insert a new session if no existing session is found
+                    cursor.execute(
+                        '''INSERT INTO sessions (session_id, user_id, IP_address, user_name, logged_in, login_time) 
+                        VALUES (?, ?, ?, ?, ?, ?)''',
+                        (session_id, user[0], user_ip, user_name, logged_in, login_time)
+                    )
+
+                db.commit()
+                flash('Logged in successfully!','success')
+                return redirect(url_for('home'))
+        
+            # Handle invalid login
+            else:
+                flash('Invalid Credentials!', 'error')
+        except Exception as e:
+            flash('Unable to proccess request!', 'error')
     return render_template('dashboard.html')
 
 #Route for checking the details related to forget password
