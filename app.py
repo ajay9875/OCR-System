@@ -1435,7 +1435,7 @@ def fetch_courses_by_names(recommended_courses):
         return []
 
 # Route for the home page
-@app.route('/user_dashboard', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def home():
     """ Home page with user login check and course recommendations """
 
