@@ -144,8 +144,8 @@ def insert_courses():
         try:
             cursor.execute("SELECT COUNT(*) AS total_courses FROM allcourses")
             result = cursor.fetchone()
-            if result > 100:
-                return "All courses already exists!"
+            if result[0] >= 100:
+                return f"{result[0]} courses already exists!"
 
             # Insert all courses in a single transaction
             cursor.executemany("""
@@ -161,7 +161,7 @@ def insert_courses():
         except Exception as e:
             db.rollback()
             print(f"Error inserting courses: {str(e)}")
-            return "Courses already exists!"
+            return "Courses could not insert!"
         finally:
             cursor.close()
 
@@ -180,8 +180,9 @@ def init_admin():
         db = get_admin_db()
         cursor = db.cursor()
         result = cursor.execute("SELECT COUNT(*) FROM admins").fetchone()
-        if result == 1:
-            return "Admin user already exist!"
+        if result[0] >= 1:
+            return f"{result[0]} Admin user already exist!"
+        
         cursor.execute(''' 
             INSERT INTO admins (username, email, phone_number, password, securityPin, profile_pic)
             VALUES (?, ?, ?, ?, ?, ?)''',
@@ -192,7 +193,7 @@ def init_admin():
         print("Admin user created.")
         return "Admin user created."
     except Exception as e:
-        return "Admin user already exist!"
+        return "Admin user could not create!"
     
 @app.before_request
 def validate_admin_session():
@@ -1440,7 +1441,7 @@ def home():
             recommended_courses = recommend_courses(selected_course)
 
             if not recommended_courses:
-                flash('Courses not found!, please try agin.','success')
+                flash("Stay tuned! We're finding the best courses for you. Please try again shortly!", "success")
                 return redirect(url_for('home'))
             else:
                 allcourses = fetch_courses_by_names(recommended_courses)  # You already use this function
