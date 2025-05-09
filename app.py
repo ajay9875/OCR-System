@@ -176,24 +176,49 @@ def init_admin():
         hashed_password = generate_password_hash(os.getenv("ADMIN_PASSWORD"))  # Uses PBKDF2 by default
         hashed_security_pin = generate_password_hash(os.getenv("SECURITY_PIN"))  # Uses PBKDF2 by default
 
-        # Open database connection and insert admin data
+        # Open database connection to admins database
         db = get_admin_db()
         cursor = db.cursor()
-        result = cursor.execute("SELECT COUNT(*) FROM admins").fetchone()
+
+        # Check if the admin user already exists in the admins table
+        cursor.execute("SELECT COUNT(*) FROM admins WHERE username = ?", (admin_name,))
+        result = cursor.fetchone()
+
         if result[0] >= 1:
-            return f"{result[0]} Admin user already exist!"
-        
+            return f"Admin user '{admin_name}' already exists in admins table!"
+
+        # Insert admin into the admins table
         cursor.execute(''' 
             INSERT INTO admins (username, email, phone_number, password, securityPin, profile_pic)
             VALUES (?, ?, ?, ?, ?, ?)''',
             (admin_name, admin_email, admin_phone, hashed_password, hashed_security_pin, None)
         )
-
         db.commit()
-        print("Admin user created.")
-        return "Admin user created."
+
+        # Handle users table separately
+        db1 = get_db()  # User database connection
+        cursor1 = db1.cursor()
+
+        # Check if the admin user already exists in the users table
+        cursor1.execute("SELECT COUNT(*) FROM users WHERE username = ?", (admin_name,))
+        result1 = cursor1.fetchone()
+
+        if result1[0] >= 1:
+            return f"User '{admin_name}' already exists in users table!"
+
+        # Insert into the users table as well (for login purposes)
+        now = datetime.now()
+        cursor1.execute('''
+            INSERT INTO users (username, email, phone_number, created_at, password)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (admin_name, admin_email, admin_phone, now, hashed_password))
+        db1.commit()
+
+        print("Admin user created and inserted into both admins and users tables.")
+        return "Admin user created and inserted into both admins and users tables."
+
     except Exception as e:
-        return "Admin user could not create!"
+        return f"Admin user could not be created! Error: {str(e)}"
     
 @app.before_request
 def validate_admin_session():
