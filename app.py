@@ -24,7 +24,218 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # Protects against CSRF in cross-
 # Prevent denial-of-service (DoS) attacks by limiting the size of incoming requests
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB limit
 
-import os
+@app.route('/insert_courses')
+def insert_courses():
+    with app.app_context():
+        db = get_allcourses_db()
+        cursor = db.cursor()
+        
+        # Combined list of all courses (original + new)
+        courses = [
+            # Original courses (30)
+            ("PCC-CSM101", "Artificial Intelligence", 12, 34),
+            ("PCC-CSM104", "Cloud Computing", 20, 10),
+            ("PCC-CSM105", "Cyber Security", 18, 30),
+            ("PCC-CSM106", "Python for Data Science", 10, 30),
+            ("PCC-CSM107", "Java for Web Development", 14, 30),
+            ("PCC-CSM108", "Blockchain Development", 18, 30),
+            ("PCC-CSM109", "DevOps Engineering", 16, 30),
+            ("PCC-CSM110", "UI/UX Design", 12, 30),
+            ("PCC-CSM111", "Game Development", 20, 30),
+            ("PCC-CSM112", "Internet of Things (IoT)", 14, 30),
+            ("PCC-CSM113", "Software Testing", 12, 30),
+            ("PCC-CSM114", "Big Data Analytics", 18, 30),
+            ("PCC-CSM115", "Quantum Computing", 22, 30),
+            ("PCC-CSM116", "Digital Marketing", 14, 30),
+            ("PCC-CSM117", "Mobile App Development", 12, 30),
+            ("PCC-CSM119", "Robotics and Automation", 18, 30),
+            ("PCC-CSM120", "Network Administration", 14, 30),
+            ("PCC-CSM121", "Game AI Development", 16, 30),
+            ("PCC-CSM122", "Data Engineering", 18, 30),
+            ("PCC-CSM123", "Cloud Security", 16, 30),
+            ("PCC-CSM125", "Artificial Intelligence for Robotics", 20, 30),
+            ("PCC-CSM126", "Blockchain for Supply Chain", 14, 30),
+            ("PCC-CSM127", "Python for Automation", 10, 30),
+            ("PCC-CSM128", "Natural Language Processing (NLP)", 18, 30),
+            ("PCC-CSM129", "Enterprise Resource Planning (ERP)", 16, 30),
+            ("PCC-CSM130", "Introduction to Quantum Computing", 12, 30),
+            ("PCC-CSM131", "Cybersecurity Risk Management", 18, 30),
+            ("PCC-CSM132", "DevOps for Developers", 14, 30),
+            ("PCC-CSM134", "Machine Learning", 20, 30),
+            ("PCC-CSM201", "ML", 5, 10),
+            
+            # New courses (70)
+            ("PCC-CSM202", "Advanced Algorithms", 16, 25),
+            ("PCC-CSM203", "Computer Graphics", 14, 20),
+            ("PCC-CSM204", "Distributed Systems", 18, 30),
+            ("PCC-CSM205", "Computer Vision", 16, 25),
+            ("PCC-CSM206", "Embedded Systems", 14, 20),
+            ("PCC-CSM207", "Wireless Networks", 12, 30),
+            ("PCC-CSM208", "Database Administration", 16, 25),
+            ("PCC-CSM209", "Software Architecture", 18, 20),
+            ("PCC-CSM210", "Mobile Security", 14, 25),
+            ("PCC-CSM211", "Ethical Hacking", 16, 30),
+            ("PCC-CSM212", "Digital Forensics", 14, 20),
+            ("PCC-CSM213", "Network Security", 16, 25),
+            ("PCC-CSM214", "Cryptography", 18, 20),
+            ("PCC-CSM215", "Penetration Testing", 14, 25),
+            ("PCC-CSM216", "Secure Coding", 12, 30),
+            ("PCC-CSM217", "Cloud Architecture", 16, 25),
+            ("PCC-CSM218", "Serverless Computing", 14, 20),
+            ("PCC-CSM219", "Microservices", 18, 25),
+            ("PCC-CSM220", "Containerization", 16, 30),
+            ("PCC-CSM221", "Data Mining", 14, 25),
+            ("PCC-CSM222", "Data Visualization", 12, 30),
+            ("PCC-CSM223", "Business Intelligence", 16, 25),
+            ("PCC-CSM224", "Predictive Analytics", 18, 20),
+            ("PCC-CSM225", "Time Series Analysis", 14, 25),
+            ("PCC-CSM226", "Deep Learning", 16, 30),
+            ("PCC-CSM227", "Reinforcement Learning", 18, 20),
+            ("PCC-CSM228", "Neural Networks", 14, 25),
+            ("PCC-CSM229", "Computer Organization", 12, 30),
+            ("PCC-CSM230", "Operating Systems", 16, 25),
+            ("PCC-CSM231", "Compiler Design", 18, 20),
+            ("PCC-CSM232", "Parallel Computing", 14, 25),
+            ("PCC-CSM233", "Quantum Algorithms", 16, 30),
+            ("PCC-CSM234", "Bioinformatics", 18, 20),
+            ("PCC-CSM235", "Computational Biology", 14, 25),
+            ("PCC-CSM236", "Health Informatics", 12, 30),
+            ("PCC-CSM237", "Augmented Reality", 16, 25),
+            ("PCC-CSM238", "Virtual Reality", 18, 20),
+            ("PCC-CSM239", "Mixed Reality", 14, 25),
+            ("PCC-CSM240", "Game Design", 16, 30),
+            ("PCC-CSM241", "Game Physics", 18, 20),
+            ("PCC-CSM242", "3D Modeling", 14, 25),
+            ("PCC-CSM243", "Animation Techniques", 12, 30),
+            ("PCC-CSM244", "Digital Signal Processing", 16, 25),
+            ("PCC-CSM245", "Image Processing", 18, 20),
+            ("PCC-CSM246", "Audio Processing", 14, 25),
+            ("PCC-CSM247", "Video Processing", 16, 30),
+            ("PCC-CSM248", "Natural Language Generation", 18, 20),
+            ("PCC-CSM249", "Speech Recognition", 14, 25),
+            ("PCC-CSM250", "Chatbot Development", 12, 30),
+            ("PCC-CSM251", "Recommendation Systems", 16, 25),
+            ("PCC-CSM252", "Fraud Detection", 18, 20),
+            ("PCC-CSM253", "Anomaly Detection", 14, 25),
+            ("PCC-CSM254", "Edge Computing", 16, 30),
+            ("PCC-CSM255", "Fog Computing", 18, 20),
+            ("PCC-CSM256", "Green Computing", 14, 25),
+            ("PCC-CSM257", "Sustainable IT", 12, 30),
+            ("PCC-CSM258", "IT Project Management", 16, 25),
+            ("PCC-CSM259", "Agile Methodologies", 18, 20),
+            ("PCC-CSM260", "Scrum Master", 14, 25),
+            ("PCC-CSM261", "DevOps Culture", 16, 30),
+            ("PCC-CSM262", "Site Reliability Engineering", 18, 20),
+            ("PCC-CSM263", "Infrastructure as Code", 14, 25),
+            ("PCC-CSM264", "Continuous Integration", 12, 30),
+            ("PCC-CSM265", "Continuous Deployment", 16, 25),
+            ("PCC-CSM266", "Test Automation", 18, 20),
+            ("PCC-CSM267", "Performance Engineering", 14, 25),
+            ("PCC-CSM268", "Load Testing", 16, 30),
+            ("PCC-CSM269", "Chaos Engineering", 18, 20),
+            ("PCC-CSM270", "Observability", 14, 25),
+            ("PCC-CSM271", "Monitoring Systems", 12, 30),
+            ("PCC-CSM272", "Log Management", 16, 25),
+            ("PCC-CSM273", "Incident Management", 18, 20),
+            ("PCC-CSM274", "IT Service Management", 14, 25),
+            ("PCC-CSM275", "Cloud Cost Optimization", 16, 30)
+        ]
+        
+        try:
+            cursor.execute("SELECT COUNT(*) AS total_courses FROM allcourses")
+            result = cursor.fetchone()
+            if result > 100:
+                return "All courses already exists!"
+
+            # Insert all courses in a single transaction
+            cursor.executemany("""
+                INSERT OR IGNORE INTO allcourses 
+                (course_code, course_name, course_unit, seat_limit) 
+                VALUES (?, ?, ?, ?)
+            """, courses)
+            
+            db.commit()
+            print(f"Successfully inserted {cursor.rowcount} courses.")
+            return f"Successfully inserted {cursor.rowcount} courses."
+        
+        except Exception as e:
+            db.rollback()
+            print(f"Error inserting courses: {str(e)}")
+            return "Courses already exists!"
+        finally:
+            cursor.close()
+
+# For development only
+@app.route('/init_admin')
+def init_admin():
+    try:
+        admin_name = os.getenv("ADMIN_NAME")
+        admin_email = os.getenv("ADMIN_EMAIL")
+        admin_phone = os.getenv("ADMIN_PHONE")
+        # Hash the password and the security pin using the default PBKDF2 method
+        hashed_password = generate_password_hash(os.getenv("ADMIN_PASSWORD"))  # Uses PBKDF2 by default
+        hashed_security_pin = generate_password_hash(os.getenv("SECURITY_PIN"))  # Uses PBKDF2 by default
+
+        # Open database connection and insert admin data
+        db = get_admin_db()
+        cursor = db.cursor()
+        result = cursor.execute("SELECT COUNT(*) FROM admins").fetchone()
+        if result == 1:
+            return "Admin user already exist!"
+        cursor.execute(''' 
+            INSERT INTO admins (username, email, phone_number, password, securityPin, profile_pic)
+            VALUES (?, ?, ?, ?, ?, ?)''',
+            (admin_name, admin_email, admin_phone, hashed_password, hashed_security_pin, None)
+        )
+
+        db.commit()
+        print("Admin user created.")
+        return "Admin user created."
+    except Exception as e:
+        return "Admin user already exist!"
+    
+@app.before_request
+def validate_admin_session():
+    if 'admin_id' in session:
+        try:
+            admin_id = session['admin_id']
+            db = get_admin_db()
+            cursor = db.cursor()
+            cursor.execute("SELECT id FROM admins WHERE id = ?", (admin_id,))
+            admin = cursor.fetchone()
+
+            if not admin:
+                session.pop('admin_id', None)
+                flash("Your account has been deleted. Please contact support.", "error")
+                return redirect(url_for("adminLogin"))
+
+        except Exception as e:
+            session.pop('admin_id', None)
+            session.pop('admin_name', None)
+            flash(f"Session error: {str(e)}", "error")
+            return redirect(url_for("adminLogin"))
+
+@app.before_request
+def validate_user_session():
+    if 'user_id' in session:
+        try:
+            user_id = session['user_id']
+            db = get_db()
+            cursor = db.cursor()
+            cursor.execute("SELECT user_id FROM users WHERE user_id = ?", (user_id,))
+            user = cursor.fetchone()
+
+            if not user:
+                session.pop('user_id', None)
+                session.pop('username', None)
+                flash("Your account has been deleted. Please contact support.", "error")
+                return redirect(url_for("login"))
+
+        except Exception as e:
+            session.pop('user_id', None)
+            session.pop('username', None)
+            flash(f"Session error: {str(e)}", "error")
+            return redirect(url_for("login"))
 
 # Create the database folder if it doesn't exist
 db_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database')
@@ -40,13 +251,6 @@ RESERVED_COURSES_DB = os.path.join(db_folder, "reservedcourses.db")
 ADMIN_DB = os.path.join(db_folder, "admins.db")
 ALLCOURSES_DB = os.path.join(db_folder, "allcourses.db")
 SESSIONS_DB = os.path.join(db_folder, "sessions.db")
-
-# Log the database file paths to ensure correctness
-print(f"USERS_DB Path: {USERS_DB}")
-print(f"RESERVED_COURSES_DB Path: {RESERVED_COURSES_DB}")
-print(f"ADMIN_DB Path: {ADMIN_DB}")
-print(f"ALLCOURSES_DB Path: {ALLCOURSES_DB}")
-print(f"SESSIONS_DB Path: {SESSIONS_DB}")
 
 # Function to get the users database connection
 def get_db():
@@ -87,6 +291,20 @@ def get_sessions_db():
         g.sessions_db = sqlite3.connect(SESSIONS_DB)
         g.sessions_db.row_factory = sqlite3.Row
     return g.sessions_db
+
+from flask import g
+
+@app.teardown_appcontext
+def close_db(error=None):
+    """Closes all database connections at the end of the request."""
+    dbs = [get_db, get_reserved_courses_db, get_admin_db, get_allcourses_db, get_sessions_db]
+    
+    for get_db_func in dbs:
+        # Access the database connection using the name of the function
+        db_name = get_db_func.__name__.replace('get_', '').replace('_db', '')  # Get the db name part
+        db = getattr(g, db_name + '_db', None)  # Get the db connection from g
+        if db is not None:
+            db.close()
 
 # Functions to create the databases (tables) if they don't exist
 
@@ -138,7 +356,7 @@ def create_admin_database():
                 email TEXT UNIQUE,
                 phone_number TEXT,
                 password TEXT NOT NULL,
-                securityPin INTEGER NOT NULL,
+                securityPin TEXT NOT NULL,
                 profile_pic TEXT
             )
         """)
@@ -223,35 +441,30 @@ def adminDashboard():
     cursor = db.cursor()
     cursor.execute('SELECT * FROM users')
     allusers = cursor.fetchall()
-    db.close()
 
     # To retrieve All courses data
     db1 = get_allcourses_db()
     cursor = db1.cursor()
     cursor.execute('SELECT * FROM allcourses')
     allcourses = cursor.fetchall()
-    db1.close()
    
     # To retrieve All sessions data
     db2 = get_sessions_db()
     cursor = db2.cursor()
     cursor.execute('SELECT * FROM sessions')
     allsessions = cursor.fetchall()
-    db2.close()
     
     # Fetch all reserved courses for admin
     db3 = get_reserved_courses_db()
     cursor = db3.cursor()
     cursor.execute("SELECT * FROM reservedcourses")
     allenrolledcourses = cursor.fetchall()
-    db.close()
     
     # To retrieve All admins data
-    db4 = get_admin_db()
-    cursor = db4.cursor()
-    cursor.execute('SELECT * FROM admins')
-    alladmins = cursor.fetchall()
-    db4.close()
+    with get_admin_db() as db4:
+        cursor = db4.cursor()
+        cursor.execute('SELECT * FROM admins')
+        alladmins = cursor.fetchall()
     
     # Check if any session has 'logged_in' == True
     active = 0
@@ -280,11 +493,73 @@ def adminDashboard():
     
     return response
 
+# Login route for admin
+# Login route for admin
+@app.route('/adminLogin', methods=['GET', 'POST'])
+def adminLogin():
+    if request.method == 'POST':
+        admin_name = request.form.get('username')
+        password = request.form.get('password')
+        securityPin = request.form.get('securityPin')
+
+        admin_db = get_admin_db()  # Get the database connection from `g`
+        cursor = admin_db.cursor()
+        cursor.execute("SELECT id, username, password, securityPin FROM admins WHERE username = ?", (admin_name,))
+        admin = cursor.fetchone()
+
+        # Check if the admin is found and credentials match
+        if admin and check_password_hash(admin[2], password) and check_password_hash(admin[3], securityPin):
+            session.permanent = True  # Keep session active
+            session_id = str(uuid.uuid4())  # Generate unique session ID
+            admin_ip = request.remote_addr  # Capture user's IP dynamically
+
+            # Store session details
+            session["admin_id"] = admin[0]
+            session['admin_name'] = admin[1]
+            session['session_id'] = session_id
+            session['admin_ip'] = admin_ip
+
+            # Get the current time in India (IST) and format it
+            india_timezone = pytz.timezone('Asia/Kolkata')
+            india_time = datetime.now(india_timezone)
+            login_time = india_time.strftime('%Y-%m-%d %H:%M:%S')
+
+            logged_in = True
+
+            # Handle session details in the session database
+            with get_sessions_db() as db1:  # Use context manager for session database
+                cursor = db1.cursor()
+
+                # Check if admin session already exists
+                cursor.execute("SELECT admin_name FROM sessions WHERE admin_name = ?", (admin_name,))
+                admin_session = cursor.fetchone()
+
+                if admin_session:
+                    cursor.execute('''UPDATE sessions SET IP_address = ?, logged_in = ?, login_time = ? WHERE admin_name = ?''',
+                                    (admin_ip, logged_in, login_time, admin_name))
+                else:
+                    cursor.execute('''INSERT INTO sessions (session_id, user_id, IP_address, admin_name, logged_in, login_time)
+                                        VALUES (?, ?, ?, ?, ?, ?)''',
+                                    (session_id, admin[0], admin_ip, admin_name, logged_in, login_time))
+
+                db1.commit()  # Commit changes to the session database
+
+            flash('Login successful!', 'success')
+            return redirect(url_for('adminDashboard'))
+
+        else:
+            flash('Invalid Credentials!', 'error')
+
+    return render_template('adminLogin.html')
+
+
 # Registration page for admin
 @app.route('/registerAdmin', methods=['GET', 'POST'])
 def registerAdmin():
     if 'admin_id' not in session:
+        flash("Please login again!", "error")
         return redirect(url_for("adminLogin"))
+
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
@@ -298,6 +573,7 @@ def registerAdmin():
 
         hashed_password = generate_password_hash(password)
         hashed_pin = generate_password_hash(securityPin)
+        now = datetime.now()
 
         try:
             db = get_admin_db()
@@ -305,11 +581,23 @@ def registerAdmin():
             cursor.execute("INSERT INTO admins (username, email, phone_number, password, securityPin) VALUES (?, ?, ?, ?, ?)",
                            (username, email, phone_number, hashed_password, hashed_pin))
             db.commit()
-            db.close()
-            flash("Admin registered successfully!",'success')
+
+            # Handle users table separately
+            db1 = get_db()
+            cursor1 = db1.cursor()
+            cursor1.execute("INSERT INTO users (username, email, phone_number, created_at, password) VALUES (?, ?, ?, ?, ?)",
+                            (username, email, phone_number, now, hashed_password))
+            db1.commit()
+
+            flash("Admin registered successfully!", 'success')
             return redirect(url_for("adminDashboard"))
+
         except sqlite3.IntegrityError:
-            flash("Admin already Exist!",'error')
+            flash("Admin already exists!", 'error')
+            return redirect(url_for("adminDashboard"))
+
+        except Exception as e:
+            flash(f"Error registering admin")
             return redirect(url_for("adminDashboard"))
         
 # Delete Admin by admin
@@ -317,78 +605,50 @@ def registerAdmin():
 def deleteAdmin():
     if 'admin_id' not in session:
         return redirect(url_for("adminLogin"))
+
     if request.method == 'POST':
         admin_id = request.form.get('admin_id')
+        admin_email = request.form.get('admin_email')
 
-        if admin_id:
-            db = get_admin_db()
-            cursor = db.cursor()
-            cursor.execute('''DELETE FROM admins 
-                           WHERE id = ?''',(admin_id))
-            db.commit()
-            db.close()
-            flash("Admin deleted successfully!",'success')
+        if admin_id and admin_email:
+            try:
+                # Delete from 'admins' table
+                db = get_admin_db()
+                cursor = db.cursor()
+                cursor.execute('DELETE FROM admins WHERE id = ?', (admin_id,))
+                db.commit()
+
+                # Delete associated user from 'users' table
+                db1 = get_db()
+                cursor1 = db1.cursor()
+                cursor1.execute('DELETE FROM users WHERE email = ?', (admin_email,))
+                db1.commit()
+
+                # Delete admin's session from 'sessions' table
+                db_sessions = get_sessions_db()
+                cursor_sessions = db_sessions.cursor()
+                cursor_sessions.execute('DELETE FROM sessions WHERE user_id = ?', (admin_id,))
+                # Commit all changes
+                db_sessions.commit()
+
+                # Check if the admin is deleting themselves
+                if str(session.get('admin_id')) == str(admin_id):
+                    session.pop('admin_id', None)
+                    flash("Your account was deleted. You have been logged out.", 'info')
+                    return redirect(url_for("adminLogin"))
+                else:
+                    flash("Admin, related user, and session deleted successfully!", 'success')
+            
+            except Exception as e:
+                flash(f"Error deleting admin, user, or session: {str(e)}", 'error')
+
             return redirect(url_for("adminDashboard"))
-        flash("Admin id does not exist!",'error')
-        return redirect(url_for("adminDashboard"))
+        else:
+            flash("Admin ID or Admin Email is missing!", 'error')
+            return redirect(url_for("adminDashboard"))
 
-# Login route for admin
-@app.route('/adminLogin', methods=['GET', 'POST'])
-def adminLogin():
-    if request.method == 'POST':
-        admin_name = request.form.get('username')
-        password = request.form.get('password')
-        securityPin = request.form.get('securityPin')
+    return redirect(url_for("adminDashboard"))
 
-        db = get_admin_db()
-        cursor = db.cursor()
-        cursor.execute("SELECT id, username, password, securityPin FROM admins WHERE username = ?", (admin_name,))
-        admin = cursor.fetchone()
-
-        if admin and check_password_hash(admin[2], password) and check_password_hash(admin[3], securityPin):
-            session.permanent = True  # Keep session active
-
-            session_id = str(uuid.uuid4())  # Generate unique session ID
-            admin_ip = request.remote_addr  # Capture user's IP dynamically
-
-            session['admin_name'] = admin[1]  # Store admin's username
-            session['session_id'] = session_id
-            session['admin_ip'] = admin_ip
-
-            # Get the current time in India (IST) and format it
-            india_timezone = pytz.timezone('Asia/Kolkata')
-            india_time = datetime.now(india_timezone)
-            login_time = india_time.strftime('%Y-%m-%d %H:%M:%S')
-
-            logged_in = True
-            
-            db = get_sessions_db()
-            cursor = db.cursor()
-            
-            # Check if admin session already exists
-            cursor.execute("SELECT admin_name FROM sessions WHERE admin_name = ?", (admin_name,))
-            admin_session = cursor.fetchone()
-
-            if admin_session:
-                cursor.execute('''UPDATE sessions SET IP_address = ?, logged_in = ?, login_time = ? WHERE admin_name = ?''',
-                               (admin_ip, logged_in, login_time, admin_name))
-            else:
-                cursor.execute('''INSERT INTO sessions (session_id, IP_address, admin_name, logged_in, login_time)
-                                  VALUES (?, ?, ?, ?, ?)''',
-                               (session_id, admin_ip, admin_name, logged_in, login_time))
-
-            db.commit()  # Commit the transaction
-            db.close()  # Close DB after commit
-
-            flash('Login successful!', 'success')
-            return redirect(url_for('adminDashboard'))
-
-        db.close()  # Ensure DB closes if login fails
-        flash('Invalid Credentials!', 'error')
-        return redirect(url_for("adminLogin"))
-
-    return render_template('adminLogin.html')
-'''
 # Logout Route for Admin
 @app.route('/adminLogout')
 def adminLogout():
@@ -397,32 +657,39 @@ def adminLogout():
 
     admin_id = session['admin_id']
     india_timezone = pytz.timezone('Asia/Kolkata')
-    india_time = datetime.now(india_timezone)
-    logout_time = india_time.strftime('%Y-%m-%d %H:%M:%S.%f')
+    logout_time = datetime.now(india_timezone)
 
-    logged_in = False
+    try:
+        logged_in = False
+        db_sessions = get_sessions_db()
+        cursor = db_sessions.cursor()
 
-    db_sessions = get_sessions_db()
-    cursor = db_sessions.cursor()
+        # Get the login time from the session
+        cursor.execute('SELECT login_time FROM sessions WHERE user_id = ?', (admin_id,))
+        data = cursor.fetchone()
 
-    # Get the login time from the session
-    cursor.execute('SELECT login_time FROM sessions WHERE admin_ = ?', (admin_id,))
-    data = cursor.fetchone()
+        if data:
+            # Parse login time and calculate active duration
+            login_time = datetime.strptime(data[0], '%Y-%m-%d %H:%M:%S.%f')
+            active_time = str(logout_time - login_time)
 
-    if data:
-        # Ensure correct format of date-time
-        login_time = datetime.strptime(data[0], '%Y-%m-%d %H:%M:%S.%f')
-        logout_time = datetime.strptime(logout_time, '%Y-%m-%d %H:%M:%S.%f')
-        active_time = str(logout_time - login_time)
+            # Update session logout details
+            cursor.execute('''
+                UPDATE sessions 
+                SET logged_in = ?, logout_time = ?, active_time = ? 
+                WHERE user_id = ?
+            ''', (logged_in, logout_time.strftime('%Y-%m-%d %H:%M:%S.%f'), active_time, admin_id))
+            db_sessions.commit()
 
-        cursor.execute("UPDATE sessions SET logged_in = ?, logout_time = ?, active_time = ? WHERE user_id = ?",
-                       (logged_in, logout_time, active_time, admin_id))
-        db_sessions.commit()
+    except Exception as e:
+        print(f"Admin logout session update failed")
+        # Optionally log to file using `logging` if needed
 
+    # Always end session and redirect
     session.pop('admin_id', None)
     flash("You have been logged out!", 'info')
     return redirect(url_for('adminLogin'))
-'''
+
 # Route and handle forget password for admin 
 @app.route('/forgetAdminPass', methods=['GET', 'POST'])
 def forgetAdminPass():
@@ -460,11 +727,9 @@ def forgetAdminPass():
                                 SET password = ?
                                 WHERE username = ?''', (hashed_password, admin_name))
             db.commit()
-            db.close()
             flash("Password updated successfully!", "success")
             return redirect(url_for('adminLogin'))
         else:
-            db.close()
             flash("Invalid Admin name or email or security pin!", "error")
             return redirect(url_for('forgetAdminPass'))
 
@@ -496,11 +761,9 @@ def forgetAdminName():
         if admin and securityPin == str(admin[1]) and check_password_hash(admin[2],password):
             cursor.execute('''UPDATE admins SET username = ? WHERE email = ?''', (admin_name, email))
             db.commit()
-            db.close()
             flash("Admin Name updated successfully!", "success")
             return redirect(url_for('adminLogin'))
         else:
-            db.close()
             flash("Invalid email or phone number or password!", "error")
             return redirect(url_for('forgetAdminName'))
 
@@ -541,11 +804,9 @@ def forgetSecurityPin():
                                 SET securityPin = ?
                                 WHERE username = ?''', (hashed_pin, admin_name))
             db.commit()
-            db.close()
             flash("Security Pin updated successfully!", "success")
             return redirect(url_for('adminLogin'))
         else:
-            db.close()
             flash("Invalid admin name or email or phone number or password!", "error")
             return redirect(url_for('forgetSecurityPin'))
 
@@ -605,14 +866,14 @@ def updateUser():
             
             # Update User information
             cursor.execute('''UPDATE users 
-                           SET username = ?, email = ?, phone_number = ?, password = ? WHERE id = ? ''',
+                           SET username = ?, email = ?, phone_number = ?, password = ? WHERE user_id = ? ''',
                            (username, email, phone_number, hashed_password, user_id))
             db.commit()
             
             flash('User updated successfully!','success')
             return redirect(url_for('adminDashboard'))        
             
-# Delete user by Admin       
+# Delete user by Admin
 @app.route('/deleteUser', methods=['POST'])
 def deleteUser():
     if 'admin_id' not in session:
@@ -624,29 +885,39 @@ def deleteUser():
         flash("Invalid user ID.", "error")
         return redirect(url_for('adminDashboard'))
 
-    db = get_db()
-    cursor = db.cursor()
-    
-    # Check if user exists before deleting
-    cursor.execute('SELECT * FROM users WHERE id=?', (user_id,))
-    user = cursor.fetchone()
-    
-    if user:
-        cursor.execute('DELETE FROM users WHERE id=?', (user_id,))
-        db.commit()
+    try:
+        # Delete from users table
+        db = get_db()
+        cursor = db.cursor()
 
-        # Check if table is empty and reset sequence
-        cursor.execute('SELECT COUNT(*) FROM users')
-        count = cursor.fetchone()[0]
+        cursor.execute('SELECT * FROM users WHERE user_id=?', (user_id,))
+        user = cursor.fetchone()
 
-        if count == 0:
-            cursor.execute("DELETE FROM sqlite_sequence WHERE name='users'")
+        if user:
+            cursor.execute('DELETE FROM users WHERE user_id=?', (user_id,))
+            cursor.execute('SELECT COUNT(*) FROM users')
+            count = cursor.fetchone()[0]
+            if count == 0:
+                cursor.execute("DELETE FROM sqlite_sequence WHERE name='users'")
             db.commit()
+        else:
+            flash("User not found!", "error")
+            return redirect(url_for('adminDashboard'))
+        
+        # Delete user session (if stored in sessions table)
+        db_sessions = get_sessions_db()
+        cursor = db_sessions.cursor()
+        cursor.execute('DELETE FROM sessions WHERE user_id=?', (user_id,))
+        db_sessions.commit()
+        db_sessions.close()
+        
+        session.pop(user_id, None)
+        flash("User and their session deleted successfully!", "success")
 
-        flash("User deleted successfully!", "success")
-    else:
-        flash("User not found!", "error")
-    
+    except Exception as e:
+        print(f"[ERROR] Failed to delete user and session: {e}")
+        flash("An error occurred while deleting the user.", "error")
+
     return redirect(url_for('adminDashboard'))
 
 # Route to add new course by Admin
@@ -756,7 +1027,6 @@ def deleteEnrolledCourse():
         if id:   
             cursor.execute('DELETE FROM reservedcourses WHERE id= ?',(id,))
             db.commit()
-            db.close()
             flash('Selected enrolled course deleted successfully!','success')
             return redirect(url_for('adminDashboard'))
         else:
@@ -781,7 +1051,6 @@ def forceLogout():
                             WHERE user_id = ?
                             ''',(user_id,))
             db.commit()
-            db.close()
             session.pop('user_id', None)  # Remove username from session
             flash('User logged out successfully!','success')
             return redirect(url_for('adminDashboard'))
@@ -880,63 +1149,53 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        try:
-            db = get_db()
-            cursor = db.cursor()
-            cursor.execute('''SELECT user_id, username, password
-                        FROM users WHERE username = ?''',
-                        (username,)
-                        )
-            user = cursor.fetchone()
+        # Step 1: Validate credentials
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute("SELECT user_id, username, password FROM users WHERE username = ?", (username,))
+        user = cursor.fetchone()
 
-            if user and check_password_hash(user[2], password):
-                # Capture the user's IP address
-                session.permanent = True
-                session_id = str(uuid.uuid4())
+        if user and check_password_hash(user[2], password):
+            # Step 2: Store session
+            session.permanent = True
+            session_id = str(uuid.uuid4())
+            user_ip = get_ip_address()
 
-                user_ip = get_ip_address()
-                
-                # Store the username and IP in the session
-                session['user_id'] = user[0]
-                session['session_id'] = session_id
-                session['username'] = user[1]
+            session['user_id'] = user[0]
+            session['username'] = user[1]
+            session['session_id'] = session_id
+            session['ip_address'] = user_ip
 
-                session['ip_address'] = user_ip
-                
-                login_time = datetime.now()
-                logged_in = True
-                
-                db = get_sessions_db()
-                cursor = db.cursor()
-                user_name = cursor.execute('''SELECT user_name FROM sessions
-                                            WHERE user_name = ?''',
-                    (username,)
-                ).fetchone()  # Check if the session for the user exists
+            login_time = datetime.now()
+            logged_in = True
 
-                if user_name:
-                    # Update the existing session
-                    cursor.execute(
-                        "UPDATE sessions SET IP_address = ?,logged_in = ?, login_time = ? WHERE user_name = ?",
-                        (user_ip, logged_in, login_time, user_name)
-                    )
-                else:
-                    # Insert a new session if no existing session is found
-                    cursor.execute(
-                        '''INSERT INTO sessions (session_id, user_id, IP_address, user_name, logged_in, login_time) 
-                        VALUES (?, ?, ?, ?, ?, ?)''',
-                        (session_id, user[0], user_ip, user_name, logged_in, login_time)
-                    )
+            # Step 3: Insert or update session info
+            db1 = get_sessions_db()
+            cursor = db1.cursor()
 
-                db.commit()
-                flash('Logged in successfully!','success')
-                return redirect(url_for('home'))
-        
-            # Handle invalid login
+            cursor.execute("SELECT user_name FROM sessions WHERE user_name = ?", (username,))
+            existing = cursor.fetchone()
+
+            if existing:
+                cursor.execute(
+                    "UPDATE sessions SET IP_address = ?, logged_in = ?, login_time = ? WHERE user_name = ?",
+                    (user_ip, logged_in, login_time, username)
+                )
             else:
-                flash('Invalid Credentials!', 'error')
-        except Exception as e:
-            flash('Unable to proccess request!', 'error')
-    return render_template('dashboard.html')
+                cursor.execute(
+                    '''INSERT INTO sessions (session_id, user_id, IP_address, user_name, logged_in, login_time)
+                        VALUES (?, ?, ?, ?, ?, ?)''',
+                    (session_id, user[0], user_ip, username, logged_in, login_time)
+                )
+
+            db1.commit()
+
+            flash('Logged in successfully!', 'success')
+            return redirect(url_for('home'))
+        else:
+            flash('Invalid Credentials!', 'error')
+    
+    return render_template('dashboard.html')  # Make sure this is your login template
 
 #Route for checking the details related to forget password
 @app.route('/forgetpass', methods=['GET', 'POST'])
@@ -1021,7 +1280,6 @@ def recommend_courses(course_name, num_recommendations=3, similarity_cutoff=0.75
         cursor = db.cursor()
         cursor.execute("SELECT course_name FROM allcourses")
         courses = cursor.fetchall()
-        db.close()
 
         if not courses:
             raise ValueError('No courses found in the database!')
@@ -1165,7 +1423,6 @@ def home():
     cursor = db.cursor()
     cursor.execute("SELECT profile_pic FROM users WHERE username=?", (username,))
     user = cursor.fetchone()
-    db.close()
     
     sidebar_links = {
         "about": url_for("about"),
@@ -1236,7 +1493,6 @@ def yourInfo():
     cursor = db.cursor()
     cursor.execute("SELECT username, email, phone_number,profile_pic FROM users WHERE username=?",(username,))
     details = cursor.fetchall()
-    db.close()
     return render_template("Yourinfo.html",details=details)
 
 #-------- Show user's reserved courses ---------
@@ -1252,7 +1508,6 @@ def reservedCourses():
     # Fetch all reserved courses for the current user
     cursor.execute("SELECT * FROM reservedcourses WHERE user_id = ?", (user_id,))
     allenrolledcourses = cursor.fetchall()
-    db.close()
 
     return render_template('reservedCourses.html', allenrolledcourses = allenrolledcourses)
 
@@ -1307,7 +1562,6 @@ def update_profile_pic():
         cursor = db.cursor()
         cursor.execute("UPDATE users SET profile_pic=? WHERE username=?", (filename, username))
         db.commit()
-        db.close()
         flash("Profile picture updated successfully!", "success")
         return redirect(url_for("home"))
 
@@ -1366,12 +1620,10 @@ def show_message():
                             db.close()
                     else:
                         flash('Invalid current password!', 'error')
-                        db.close()
                         return redirect(url_for('settings'))
                 else:
                     # Handle case when the user is not found
                     flash('Invalid Username!', 'error')
-                    db.close()
                     return redirect(url_for('settings'))
 
         elif form_type == 'notification-form':
@@ -1406,11 +1658,11 @@ def logout():
                     logout_time = datetime.strptime(str(logout_time),'%Y-%m-%d %H:%M:%S.%f')
                     login_time = datetime.strptime(str(data[0]),'%Y-%m-%d %H:%M:%S.%f')
                     active_time = str(logout_time - login_time)
-                     
+                    formatted_logout_time = logout_time.strftime('%Y-%m-%d %H:%M:%S')
                     cursor.execute('''UPDATE sessions
                                 SET logged_in = ?, logout_time = ?,
                                 active_time = ? WHERE user_id = ?
-                                ''',(logged_in, logout_time, active_time, user_id))
+                                ''',(logged_in, str(formatted_logout_time), active_time, user_id))
                     db.commit()
                     session.pop('user_id', None) 
                     flash("You have been logged out!", 'info')
@@ -1487,7 +1739,6 @@ def remove_course():
     cursor.execute("SELECT * FROM reservedcourses WHERE user_id=?", (user_id,))
     allenrolledcourses = cursor.fetchall()
     #Close connection from database after each deletion
-    db.close()
 
     flash('Selected course removed successfully!','success')
     
