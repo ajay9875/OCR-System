@@ -1,1 +1,5 @@
-venv/
+*.db
+/venv
+/database
+/.vscode
+.env

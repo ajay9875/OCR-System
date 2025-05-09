@@ -1,22 +1,17 @@
 from flask import Flask, render_template, request, session, flash, redirect, url_for, make_response, g
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
-import sqlite3
-import os
-import pandas as pd
-from fuzzywuzzy import process
+from email_validator import validate_email, EmailNotValidError
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from werkzeug.utils import secure_filename
 from datetime import datetime
-from email_validator import validate_email, EmailNotValidError
-from flask_talisman import Talisman
-
+import sqlite3
+import pytz
+import re
+import os
 # Initialize the Flask application
 app = Flask(__name__)
-app.secret_key = os.environ.get('secret_key', '')
-
-# Flask-Talisman for security headers and HTTPS enforcement
-talisman = Talisman(app, content_security_policy=None)
+app.secret_key = os.environ.get('SECRET_KEY')
 
 # Session cookie settings
 app.config["SESSION_COOKIE_SECURE"] = True  # Ensures cookies are sent over HTTPS
@@ -26,39 +21,39 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # Protects against CSRF in cross-
 # Prevent denial-of-service (DoS) attacks by limiting the size of incoming requests
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB limit
 
+import os
+
+# Create the database folder if it doesn't exist
+db_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database')
+if not os.path.exists(db_folder):
+    os.makedirs(db_folder)
+
 #------ All functions to create database using sqlite3 ------
 import time
 
-def execute_with_retry(db, query, params=(), retries=3, delay=0.1):
-    for attempt in range(retries):
-        try:
-            cursor = db.cursor()
-            cursor.execute(query, params)
-            db.commit()
-            return True
-        except sqlite3.OperationalError as e:
-            if "database is locked" in str(e):
-                time.sleep(delay)
-            else:
-                raise
-    raise Exception("Max retries exceeded for database operation.")
+# Database file paths - Ensure they are full paths inside the 'database' folder
+USERS_DB = os.path.join(db_folder, "users.db")
+RESERVED_COURSES_DB = os.path.join(db_folder, "reservedcourses.db")
+ADMIN_DB = os.path.join(db_folder, "admins.db")
+ALLCOURSES_DB = os.path.join(db_folder, "allcourses.db")
+SESSIONS_DB = os.path.join(db_folder, "sessions.db")
 
+# Log the database file paths to ensure correctness
+print(f"USERS_DB Path: {USERS_DB}")
+print(f"RESERVED_COURSES_DB Path: {RESERVED_COURSES_DB}")
+print(f"ADMIN_DB Path: {ADMIN_DB}")
+print(f"ALLCOURSES_DB Path: {ALLCOURSES_DB}")
+print(f"SESSIONS_DB Path: {SESSIONS_DB}")
 
-
-USERS_DB = "users.db"
-# Separate database connection functions for each database
-
+# Function to get the users database connection
 def get_db():
     """Returns a database connection to the users database."""
     if not hasattr(g, 'users_db'):
         g.users_db = sqlite3.connect(USERS_DB)
-        #db.execute('PRAGMA journal_mode=WAL')  # Enable WAL mode
         g.users_db.row_factory = sqlite3.Row
     return g.users_db
 
-# Function to define shema and create database for reserved courses 
-RESERVED_COURSES_DB = "reservedcourses.db"
-# Return reserved courses database
+# Function to get the reserved courses database connection
 def get_reserved_courses_db():
     """Returns a database connection to the courses database."""
     if not hasattr(g, 'reservedcourses_db'):
@@ -66,6 +61,51 @@ def get_reserved_courses_db():
         g.reservedcourses_db.row_factory = sqlite3.Row
     return g.reservedcourses_db
 
+# Function to get the admin database connection
+def get_admin_db():
+    """Returns a database connection to the admins database."""
+    if not hasattr(g, 'admin_db'):
+        g.admin_db = sqlite3.connect(ADMIN_DB)
+        g.admin_db.row_factory = sqlite3.Row
+    return g.admin_db
+
+# Function to get the allcourses database connection
+def get_allcourses_db():
+    """Returns a database connection to the allcourses database."""
+    if not hasattr(g, 'courses_db'):
+        g.courses_db = sqlite3.connect(ALLCOURSES_DB)
+        g.courses_db.row_factory = sqlite3.Row
+    return g.courses_db
+
+# Function to get the sessions database connection
+def get_sessions_db():
+    """Returns a database connection to the sessions database."""
+    if not hasattr(g, 'sessions_db'):
+        g.sessions_db = sqlite3.connect(SESSIONS_DB)
+        g.sessions_db.row_factory = sqlite3.Row
+    return g.sessions_db
+
+# Functions to create the databases (tables) if they don't exist
+
+# Create the 'users' table
+def create_users_database():
+    with app.app_context():
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                email TEXT UNIQUE,
+                phone_number TEXT,
+                created_at TEXT NOT NULL,
+                password TEXT NOT NULL,
+                profile_pic TEXT
+            )
+        """)
+        db.commit()
+
+# Create the 'reservedcourses' table
 def create_reserved_courses_database():
     with app.app_context():
         db = get_reserved_courses_db()
@@ -81,22 +121,9 @@ def create_reserved_courses_database():
                 enrolled_at CURRENT_TIMESTAMP
             )
         """)
-        
         db.commit()
-        
-# Calling to create database for courses 
-create_reserved_courses_database()
 
-# Database for admin details, login id, password etc.
-ADMIN_DB = "admins.db"
-def get_admin_db():
-    """Returns a database connection to the users database."""
-    if not hasattr(g, 'admin_db'):
-        g.admin_db = sqlite3.connect(ADMIN_DB)
-        g.admin_db.row_factory = sqlite3.Row
-    return g.admin_db
-
-# Function to define shema and create database for admin 
+# Create the 'admins' table
 def create_admin_database():
     with app.app_context():
         db = get_admin_db()
@@ -112,49 +139,9 @@ def create_admin_database():
                 profile_pic TEXT
             )
         """)
-    
         db.commit()
-        
-# Calling to create database for users
-create_admin_database()
 
-# Function to define shema and create database for users 
-def create_users_database():
-    with app.app_context():
-        # Current timestamp
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                email TEXT UNIQUE,
-                phone_number TEXT,
-                created_at DATE NOT NULL,
-                password TEXT NOT NULL,
-                profile_pic TEXT
-            )
-        """)
-    
-        db.commit()
-        
-# Calling to create database for users
-create_users_database()
-
-# To return a Databse or error on call
-ALLCOURSES_DB = "allcourses.db"
-def get_allcourses_db():
-    """Ensure database connection"""
-    try:
-        if not hasattr(g, 'courses_db'):
-            g.courses_db = sqlite3.connect(ALLCOURSES_DB)
-            g.courses_db.row_factory = sqlite3.Row
-        return g.courses_db
-    except Exception as e:
-        app.logger.error(f"Error connecting to the database: {e}")
-        return None
-
-# Function to create allcourses database
+# Create the 'allcourses' table
 def create_allcourses_database():
     with app.app_context():
         db = get_allcourses_db()
@@ -168,41 +155,29 @@ def create_allcourses_database():
                 course_unit INTEGER NOT NULL
             )
         """)
-    
         db.commit()
-        
-# Calling to create database for users
-create_allcourses_database()
 
-# To create and sessions database
-SESSIONS_DB = "sessions.db"
-def get_sessions_db():
-    """Returns a database connection to the users database."""
-    if not hasattr(g, 'sessions_db'):
-        g.sessions_db = sqlite3.connect(SESSIONS_DB)
-        g.sessions_db.row_factory = sqlite3.Row
-    return g.sessions_db
-
-# Function to create session database
+# Create the 'sessions' table
 def create_sessions_database():
     with app.app_context():
         db = get_sessions_db()
         cursor = db.cursor()
         cursor.execute("""
-                CREATE TABLE IF NOT EXISTS sessions (
+            CREATE TABLE IF NOT EXISTS sessions (
                 session_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id TEXT NOT NULL,
-                IP_address TEXT NOT NULL,
-                logged_in BOOLEAN,
-                login_time DATE,
-                logout_time DATE,
-                active_time TEXT  
-                );
+                user_id INTEGER NOT NULL,
+                login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(user_id)
+            )
         """)
-    
         db.commit()
-# Calling to create session database
-create_sessions_database()   
+
+# Call to create databases (tables)
+create_users_database()
+create_reserved_courses_database()
+create_admin_database()
+create_allcourses_database()
+create_sessions_database()
         
 def enable_wal_mode(db_path):
     conn = sqlite3.connect(db_path)
@@ -210,10 +185,12 @@ def enable_wal_mode(db_path):
     conn.close()
 
 # Enable WAL for each database
-enable_wal_mode('admins.db')
-enable_wal_mode('users.db')
-enable_wal_mode('sessions.db')
-enable_wal_mode('enrollments.db')
+# Enable WAL for each database in the correct 'database' folder
+enable_wal_mode(ADMIN_DB)
+enable_wal_mode(USERS_DB)
+enable_wal_mode(SESSIONS_DB)
+enable_wal_mode(RESERVED_COURSES_DB)
+enable_wal_mode(ALLCOURSES_DB)
 
 # Close connections properly
 @app.teardown_appcontext
@@ -223,6 +200,20 @@ def close_connection(exception=None):
         db = getattr(g, db_name, None)
         if db is not None:
             db.close()
+
+def execute_with_retry(db, query, params=(), retries=3, delay=0.1):
+    for attempt in range(retries):
+        try:
+            cursor = db.cursor()
+            cursor.execute(query, params)
+            db.commit()
+            return True
+        except sqlite3.OperationalError as e:
+            if "database is locked" in str(e):
+                time.sleep(delay)
+            else:
+                raise
+    raise Exception("Max retries exceeded for database operation.")
 
 #------------- Handle All function for ADMIN with their Route -----------------
 # Admin Dashboard (Only Accessible by Logged-In Admins)
@@ -326,7 +317,6 @@ def registerAdmin():
             return redirect(url_for("adminDashboard"))
         
 # Delete Admin by admin
-# Registration page for admin
 @app.route('/deleteAdmin', methods=['POST'])
 def deleteAdmin():
     if 'admin_id' not in session:
@@ -345,40 +335,98 @@ def deleteAdmin():
             return redirect(url_for("adminDashboard"))
         flash("Admin id does not exist!",'error')
         return redirect(url_for("adminDashboard"))
-        
+
 # Login route for admin
 @app.route('/adminLogin', methods=['GET', 'POST'])
 def adminLogin():
     if request.method == 'POST':
-        username = request.form.get('username')
+        admin_name = request.form.get('username')
         password = request.form.get('password')
         securityPin = request.form.get('securityPin')
 
         db = get_admin_db()
         cursor = db.cursor()
-        cursor.execute("SELECT * FROM admins WHERE username = ?", (username,))
+        cursor.execute("SELECT id, username, password, securityPin FROM admins WHERE username = ?", (admin_name,))
         admin = cursor.fetchone()
 
-        # Check if admin exists
-        if admin:
-            stored_password = admin['password']
-            stored_security_pin = str(admin['securityPin'])  # Convert to string for comparison
+        if admin and check_password_hash(admin[2], password) and check_password_hash(admin[3], securityPin):
+            session.permanent = True  # Keep session active
 
-            if check_password_hash(stored_password, password) and check_password_hash(stored_security_pin,securityPin):
-                session.permanent = True  # Keep session active
-                session['admin_id'] = admin['id']
-                session['admin_name'] = admin['username']
-                flash('Login successful!', 'success')
-                db.close()        
+            session_id = str(uuid.uuid4())  # Generate unique session ID
+            admin_ip = request.remote_addr  # Capture user's IP dynamically
 
-                return redirect(url_for('adminDashboard'))
-        db.close()        
-        # Flash message and redirect on failure
+            session['admin_name'] = admin[1]  # Store admin's username
+            session['session_id'] = session_id
+            session['admin_ip'] = admin_ip
+
+            # Get the current time in India (IST) and format it
+            india_timezone = pytz.timezone('Asia/Kolkata')
+            india_time = datetime.now(india_timezone)
+            login_time = india_time.strftime('%Y-%m-%d %H:%M:%S')
+
+            logged_in = True
+            
+            db = get_sessions_db()
+            cursor = db.cursor()
+            
+            # Check if admin session already exists
+            cursor.execute("SELECT admin_name FROM sessions WHERE admin_name = ?", (admin_name,))
+            admin_session = cursor.fetchone()
+
+            if admin_session:
+                cursor.execute('''UPDATE sessions SET IP_address = ?, logged_in = ?, login_time = ? WHERE admin_name = ?''',
+                               (admin_ip, logged_in, login_time, admin_name))
+            else:
+                cursor.execute('''INSERT INTO sessions (session_id, IP_address, admin_name, logged_in, login_time)
+                                  VALUES (?, ?, ?, ?, ?)''',
+                               (session_id, admin_ip, admin_name, logged_in, login_time))
+
+            db.commit()  # Commit the transaction
+            db.close()  # Close DB after commit
+
+            flash('Login successful!', 'success')
+            return redirect(url_for('adminDashboard'))
+
+        db.close()  # Ensure DB closes if login fails
         flash('Invalid Credentials!', 'error')
         return redirect(url_for("adminLogin"))
 
     return render_template('adminLogin.html')
+'''
+# Logout Route for Admin
+@app.route('/adminLogout')
+def adminLogout():
+    if 'admin_id' not in session:
+        return redirect(url_for('adminLogin'))
 
+    admin_id = session['admin_id']
+    india_timezone = pytz.timezone('Asia/Kolkata')
+    india_time = datetime.now(india_timezone)
+    logout_time = india_time.strftime('%Y-%m-%d %H:%M:%S.%f')
+
+    logged_in = False
+
+    db_sessions = get_sessions_db()
+    cursor = db_sessions.cursor()
+
+    # Get the login time from the session
+    cursor.execute('SELECT login_time FROM sessions WHERE admin_ = ?', (admin_id,))
+    data = cursor.fetchone()
+
+    if data:
+        # Ensure correct format of date-time
+        login_time = datetime.strptime(data[0], '%Y-%m-%d %H:%M:%S.%f')
+        logout_time = datetime.strptime(logout_time, '%Y-%m-%d %H:%M:%S.%f')
+        active_time = str(logout_time - login_time)
+
+        cursor.execute("UPDATE sessions SET logged_in = ?, logout_time = ?, active_time = ? WHERE user_id = ?",
+                       (logged_in, logout_time, active_time, admin_id))
+        db_sessions.commit()
+
+    session.pop('admin_id', None)
+    flash("You have been logged out!", 'info')
+    return redirect(url_for('adminLogin'))
+'''
 # Route and handle forget password for admin 
 @app.route('/forgetAdminPass', methods=['GET', 'POST'])
 def forgetAdminPass():
@@ -745,51 +793,9 @@ def forceLogout():
         return redirect(url_for('adminDashboard'))
     return None
 
-# Logout Route for Admin
-@app.route('/adminLogout')
-def adminLogout():
-    if 'admin_id' not in session:
-        return redirect(url_for('adminLogin'))
-    session.pop('admin_id',None)
-    flash("You have been logged out.")
-    return redirect(url_for('adminLogin'))
-
 #----------- Handle all login credentials or login information for Users -----------
 #To register, login,logout, forgot username and password route and their handling functions at dashboard page --------
-'''
-@app.route('/register', methods=['POST', 'GET'])
-def register():
-    """Handles user registration."""
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        phone_number = request.form.get('phone_number')
-        password = request.form.get('newpassword')
-        confirmpassword = request.form.get('confirmpassword')
-        
-        now = datetime.now()
 
-        if not username or not email or not password:
-            return render_template('signup.html', error_message="Missing fields")
-
-        if password != confirmpassword:
-            return render_template('signup.html', error_message="Passwords do not match")
-
-        hashed_password = generate_password_hash(password)
-
-        try:
-            db = get_db()
-            cursor = db.cursor()
-            cursor.execute("INSERT INTO users (username, email, phone_number, created_at, password) VALUES (?, ?, ?, ?, ?)",
-                           (username, email, phone_number, now, hashed_password))
-            db.commit()
-            flash("Registered successfully!",'success')
-            return redirect(url_for("login"))
-        except sqlite3.IntegrityError:
-            return render_template('signup.html', error_message="Username or email already exists")
-    else:
-        return render_template('signup.html')
-'''
 # Function to check whether an eamil is valid or not
 def check_email(email):
     try:
@@ -871,7 +877,7 @@ def get_ip_address():
     if 'X-Forwarded-For' in request.headers:
         user_ip = request.headers['X-Forwarded-For'].split(',')[0]
     return user_ip
-
+import uuid
 # Handle login credentials
 @app.route('/login', methods=["POST", "GET"])
 def login():
@@ -881,19 +887,23 @@ def login():
        
         db = get_db()
         cursor = db.cursor()
-        cursor.execute('''SELECT username, password
+        cursor.execute('''SELECT user_id, username, password
                        FROM users WHERE username = ?''',
                        (username,)
                        )
         user = cursor.fetchone()
 
-        if user and check_password_hash(user[1], password):
+        if user and check_password_hash(user[2], password):
             # Capture the user's IP address
+            session.permanent = True
+            session_id = str(uuid.uuid4())
+
             user_ip = get_ip_address()
             
             # Store the username and IP in the session
             session['user_id'] = user[0]
-            session['username'] = user[0]
+            session['session_id'] = session_id
+            session['username'] = user[1]
 
             session['ip_address'] = user_ip
             
@@ -902,23 +912,23 @@ def login():
             
             db = get_sessions_db()
             cursor = db.cursor()
-            user_session = cursor.execute('''SELECT user_id FROM sessions
-                                          WHERE user_id = ?''',
+            user_name = cursor.execute('''SELECT user_name FROM sessions
+                                          WHERE user_name = ?''',
                 (username,)
             ).fetchone()  # Check if the session for the user exists
 
-            if user_session:
+            if user_name:
                 # Update the existing session
                 cursor.execute(
-                    "UPDATE sessions SET IP_address = ?,logged_in = ?, login_time = ? WHERE user_id = ?",
-                    (user_ip, logged_in, login_time, username)
+                    "UPDATE sessions SET IP_address = ?,logged_in = ?, login_time = ? WHERE user_name = ?",
+                    (user_ip, logged_in, login_time, user_name)
                 )
             else:
                 # Insert a new session if no existing session is found
                 cursor.execute(
-                    '''INSERT INTO sessions (IP_address, user_id, logged_in, login_time) 
-                    VALUES (?, ?, ?, ?)''',
-                    (user_ip, username, logged_in, login_time)
+                    '''INSERT INTO sessions (session_id, IP_address, user_name, logged_in, login_time) 
+                    VALUES (?, ?, ?, ?, ?)''',
+                    (session_id, user_ip, user_name, logged_in, login_time)
                 )
 
             db.commit()
@@ -999,11 +1009,6 @@ def forgot_username():
             return render_template('forgotusername.html',error_message='Invalid email or phone number!')
     # Display the forgot username form
     return render_template('forgotusername.html')
-
-# By default route for home page and after login
-@app.route('/index')
-def index():
-    return "Please login to see this page!"
 
 #------- Recommendation Using Artificial Intelligence ---------
 # Function to recommend courses based on a course name
@@ -1216,8 +1221,7 @@ def contact():
     if request.method == 'POST':
         name = request.form.get('name')
         return render_template('Contact.html',name=name,confirm=" thank you for reaching out to us!, we have received your message and will get back to you shortly.")
-    elif 'user_id' not in session:
-        return redirect(url_for('login'))
+    
     return render_template("Contact.html")
 
 
@@ -1409,12 +1413,13 @@ def logout():
                                 active_time = ? WHERE user_id = ?
                                 ''',(logged_in, logout_time, active_time, user_id))
                     db.commit()
-                    session.pop('user_id', None)  
+                    session.pop('user_id', None) 
+                    flash("You have been logged out!", 'info')
                     return redirect(url_for('login'))
-
+                
                 session.pop('user_id', None)  
+                flash("You have been logged out!", 'info')
                 return redirect(url_for('login'))
-
             session.pop('user_id', None)  
             return redirect(url_for('login'))
         session.pop('user_id', None)  
@@ -1489,8 +1494,7 @@ def remove_course():
     
     return render_template('reservedCourses.html', allenrolledcourses=allenrolledcourses)
 
-
 #----------  To Run the server  -----------
 if __name__ == "__main__":
-    app.run(threaded=True, debug=False, host='0.0.0.0', port=80)
+    app.run(debug=True)
     

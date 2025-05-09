@@ -512,57 +512,70 @@ h3{
             </table>
         </div>
 
-        <!-- Manage session section -->
-        <div id="session" class="section">
-            <h2>Session Management</h2>
-            {% if allsessions %}
-                <h3>All Sessions</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Sl.No.</th>
-                            <th>Session ID</th>
-                            <th>User ID</th>
-                            <th>IP Address</th>
-                            <th>Active</th>
-                            <th>Last Login</th>
-                            <th>Last Logout</th>
-                            <th>Total Active Time</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                {% for session in allsessions  %}
+       <!-- Manage session section -->
+       <div id="session" class="section">
+        <h2>Session Management</h2>
+        {% if allsessions %}
+            <h3>All Users and Admins Sessions</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sl.No.</th>
+                        <th>Session ID</th>
+                        <th>User/Admin ID</th>
+                        <th>IP Address</th>
+                        <th>Active</th>
+                        <th>Last Login</th>
+                        <th>Last Logout</th>
+                        <th>Active Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
                 <tbody>
-                    <!-- Example Row -->
+                    {% for session in allsessions %}
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>{{ session['session_id'] }}</td>
-                        <td>{{ session['user_id'] }}</td>
+                        <td>
+                            {% if session['admin_id'] %}
+                                Admin: {{ session['admin_id'] }}
+                            {% else %}
+                                User: {{ session['user_id'] }}
+                            {% endif %}
+                        </td>
                         <td>{{ session['IP_address'] }}</td>
-                        <td>{{ session['logged_in'] }} {% if session['logged_in'] == True %}
-                             <p id="active"></p>
-                         {% else %}
-                            <p id="inactive"></p>
-                         {% endif %}</td>
+                        <td>
+                            {{ session['logged_in'] }}
+                            {% if session['logged_in'] %}
+                                <p id="active"></p>
+                            {% else %}
+                                <p id="inactive"></p>
+                            {% endif %}
+                        </td>
                         <td>{{ session['login_time'] }}</td>
                         <td>{{ session['logout_time'] }}</td>
                         <td>{{ session['active_time'] }}</td>
                         <td>
                             <div class="btn-container">
-                              <form action="/forceLogout" method="POST">
-                                <input type="hidden" name="user_id" value="{{ session['user_id'] }}">
-                                <button id="force-logout-btn">Force Logout</button>
-                              </form>
+                                <form action="/forceLogout" method="POST">
+                                    {% if session['admin_id'] %}
+                                        <input type="hidden" name="admin_id" value="{{ session['admin_id'] }}">
+                                    {% elif session['user_id'] %}
+                                        <input type="hidden" name="user_id" value="{{ session['user_id'] }}">
+                                    {% endif %}
+                                    <button id="force-logout-btn">Force Logout</button>
+                                </form>
                             </div>
                         </td>
                     </tr>
+                    {% endfor %}
                 </tbody>
-                {% endfor %}
             </table>
-            {% else %}
-                No session to show.
-            {% endif %}
-        </div>
+        {% else %}
+            <p>No session to show.</p>
+        {% endif %}
+    </div>
+
 
         <!-- Manage Enrolled Courses section -->
         <div id="enrolledcourse" class="section">

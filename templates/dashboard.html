@@ -11,15 +11,18 @@
     <style>
 
 /*To design our nav bar element and their body*/
-    .nav-bar {
+    .header {
+        left: 0;
+        top: 0px;
+        margin: 0px;
+        position:fixed;
         justify-content: space-between;
         align-items: center;
-        height: 50px;
         padding:5px;
+        width: 100%;
         background-color:grey;
-        border-radius: 3px;
     }
-    .nav-bar a {
+    .header a {
         color: black;
         text-decoration: none;
         margin: 0px;
@@ -29,34 +32,31 @@
         font-weight: bold;
     }
 
-    .nav-bar button{
+    .header button{
         background-color: grey;
         border:none;
     }
 
-    .nav-bar a:hover {
+    .header a:hover {
         background-color: white;
         border-radius: 5px;
     }
 
-    .nav-bar .brand {
+    .header .brand {
         font-size: 1.5rem;
         font-weight: bold;
     }
 
-    .nav-bar ul {
+    .header ul {
         list-style: none;
         display: flex;
         margin: 0;
         padding: 0;
     }
 
-    .nav-bar ul li {
-        display: inline;
-    }
-
 /* To show details and login page with inline property */
 .all{
+    margin-top: 60px;
     display:flex;
     justify-content: space-between;
 }
@@ -152,7 +152,7 @@ input {
 
 <body>
     <!--Nave bar body-->
-    <div class="nav-bar">
+    <header class="header">
         <ul>
           <li><a href="#">Home</a></li>
           <li><a href="/about">About</a></li>
@@ -160,8 +160,7 @@ input {
           <li><a href="/contact">Contact</a></li>
           <li><a href="/adminLogin">Admin - Login</a></li>
         </ul>
-    </div>
-</div>
+    </header>
 
   <div class="all">
   
@@ -203,15 +202,25 @@ input {
   <div class="right-side">
    <div class="logo-image-greet">
     <div class="greet">
-     <!-- Flash messages -->
-     {% with messages = get_flashed_messages(with_categories=true) %}
-     {% if messages %}
-         {% for category, message in messages %}
-          <p id="greet">{{ message }}</p>
-         {% endfor %}
-     {% endif %}
-     {% endwith %}
- 
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      {% if category == 'success' %}
+         <p style="color:green">{{ message }}</p>
+      {% elif category == 'error' %}
+         <p style="color:red">{{ message }}</p>
+      {% elif category == 'warning' %}
+         <p style="color:orange">{{ message }}</p>
+      {% elif category == 'info' %}
+         <p style="color:blue">{{ message }}</p>
+      {% else %}
+         <p>{{ message }}</p>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
     </div>
     <div class="logo-image">
         <img src="static\css\logo.jpg">
@@ -225,13 +234,6 @@ input {
         <img src="static\css\loginicon.png">
       </div>
         <form method="POST" action="/login">
-            <!-- Error Message -->
-            <label id="error">
-                {% if error_message  %}
-                   {{ error_message }}
-                {% endif %}
-            </label>
-            <br>
             <div class="form-group">
                 <label for="username">Enter Username</label>
                 <input type="text" class="form-control" id="username" name="username" onclick="hideError_message()" required>
