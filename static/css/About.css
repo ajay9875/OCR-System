@@ -1,6 +1,5 @@
 body {
     font-family: Arial, sans-serif;
-    line-height: 1.6;
     color: #333;
     background-color: #c5ddf3;
 }
@@ -25,7 +24,10 @@ body {
     background-color: #007bff;
     color: white;
     text-align: center;
-    height: 90px;
+    width: 100%;
+    position: fixed;
+    padding: 10px;
+    z-index: 1000;
 }
 
 .about-content {
@@ -67,6 +69,6 @@ body {
 footer {
     text-align: center;
     padding: 10px 0;
-    background: #007bff;
-    color: white;
+    background: white;
+    color: rgb(197, 195, 195);
 }

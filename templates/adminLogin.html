@@ -4,98 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/adminLogin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/allmessage.css')}}">
 
-    <style>
-.All{
-    display:flex;
-}
-    /*--- Home button Style --*/
-    .home{
-        height:65px;
-        width:55px;
-        margin: 10px;
-    }
-    .home img{
-        height:60px;
-        width:60px;
-        border-radius: 100%;
-    }
-    /* Admin login page style */
-    .Admin-loginpage h2{
-        color:#a52a2a;
-     }
-     .log-icon img{
-      border-radius: 100%;
-      height:60px;
-      width:60px;
-    }
-
-/* Design of all element in the login form with display */
-h2, label, input, button, a{
-    display:flex;
-    margin-bottom: 10px;
-}
-
-label{
-    font-size: larger;
-}
-input {
-    border-radius: 5px;
-    border-color: black;
-    height: 20px;
-    width:200px;
-}
-
-    .Admin-loginpage{
-        text-align: center;
-        justify-items: center;
-        width:fit-content;
-        height:fit-content;
-        border:groove 2px whitesmoke;
-        padding:20px;
-        margin:20px 400px;
-        border-radius: 10px;
-        background-color:rgb(235, 235, 230);
-    }
-    .Admin-loginpage button{
-        border-radius: 10px;
-        padding:5px;
-        background-color: chartreuse;
-        border:double 2px black;
-    }
-    .Admin-loginpage button:hover{
-        background-color:rgb(91, 245, 44);
-    }
-    </style>
 </head>
 <body>
-<div class="All">
-    <!-- Home Button-->
-    <div class="home">
-        <a href="/login" class="btn"><img src="{{url_for('static',filename='css/homeicon.png')}}"></a>
-    </div>
+        <!-- Display flash messages -->
+       <div class="message">
+        <!-- Display flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'error' %}
+                        <p id="error" style="color:red"> {{ message }} </p> 
+                    {% elif category == 'success' %}
+                        <p id="success" style="color:green"> {{ message }} </p> 
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+      </div>
     <!-- Admin Login Form -->
-    <div class="Admin-loginpage">
+    <div class="loginpage">
         <div class="log-icon">
           <h2>Admin Login</h2>
            <!-- Login icon -->
           <img src="static\css\loginicon.png">
         </div>
-          <form method="POST" action="/adminLogin">
-<!-- Display flash messages -->
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-            {% if category == 'error' %}
-                <p id="error" style="color:red"> {{ message }} </p> 
-            {% elif category == 'success' %}
-                <p id="success" style="color:green"> {{ message }} </p> 
-            {% endif %}
-        {% endfor %}
-    {% endif %}
-{% endwith %}
-              
-            <br>
+          <form method="POST" action="/adminLogin">    
               <div class="form-group">
                   <label for="username">Admin Name</label>
                   <input type="text" class="form-control" id="username" name="username" onclick="hideError_message()" autocomplete="off" required>
@@ -114,12 +50,9 @@ input {
   
               <!-- Additional Links -->
               <div class="link">
-                  <a href="/forgetAdminPass">Forgot Password?</a>
-                  <a href="/forgetAdminName">Forgot AdminName?</a>
-                  <a href="/forgetSecurityPin">Forgot Security Pin?</a>
+                <p style="text-align: center; text-decoration: none;"><a href="/" style="text-decoration: none;">← Back to Home</a></p>
               </div>
           </form>
-       </div>
     </div>
        <script>
           function hideError_message(){

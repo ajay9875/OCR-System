@@ -1522,14 +1522,13 @@ def services():
     return render_template("Services.html")
 
 # Route for contact us page
-@app.route("/contact",methods=['GET','POST'])
+@app.route("/contact", methods=['GET','POST'])
 def contact():
     if request.method == 'POST':
         name = request.form.get('name')
-        return render_template('Contact.html',name=name,confirm=" thank you for reaching out to us!, we have received your message and will get back to you shortly.")
-    
+        flash(f"Dear {name}, thank you for reaching out to us! We have received your message and will get back to you shortly.", 'success')
+        return redirect(url_for('contact'))
     return render_template("Contact.html")
-
 
 #-------- Route to show all options page of profile button --------
 #------- Route to show your info page ---------
@@ -1796,5 +1795,4 @@ def remove_course():
 
 #----------  To Run the server  -----------
 if __name__ == "__main__":
-    app.run(debug=False)
-    
+    app.run(debug=True)

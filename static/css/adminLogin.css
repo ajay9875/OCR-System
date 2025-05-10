@@ -1,0 +1,47 @@
+    /* Admin login page style */
+    .loginpage h2{
+        color:#a52a2a;
+     }
+     .log-icon img{
+      border-radius: 100%;
+      height:60px;
+      width:60px;
+    }
+
+/* Design of all element in the login form with display */
+h2, label, input, button, a{
+    display:flex;
+    margin-bottom: 10px;
+}
+
+label{
+    font-size: larger;
+}
+input {
+    border-radius: 5px;
+    border-color: black;
+    height: 20px;
+    width:200px;
+}
+
+    .loginpage{
+        text-align: center;
+        justify-items: center;
+        justify-self: center;
+        width:fit-content;
+        height:fit-content;
+        border:groove 2px whitesmoke;
+        padding:20px;
+        border-radius: 10px;
+        background-color:rgb(235, 235, 230);
+    }
+    .loginpage button{
+        border-radius: 10px;
+        padding:5px;
+        background-color: chartreuse;
+        border:double 2px black;
+    }
+    .loginpage button:hover{
+        background-color:rgb(91, 245, 44);
+        cursor: pointer;
+    }

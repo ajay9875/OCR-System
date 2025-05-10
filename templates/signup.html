@@ -1,47 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  
-  <!-- To connect a external css file-->
-  <!--
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/signup.css') }}">
-  -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Registration Page</title>
 
 <style>
-  /*--- All content displaying with inline style ---*/
-  .all-content{
-    display: flex;
-  }
-  /*--- Home button Style --*/
-.home{
-    height:65px;
-    width:55px;
-    margin: 5px;
-  }
-   .home img{
-      height:60px;
-      width:60px;
-      border-radius: 100%;
-   }
-
-
-h2{
+h3{
   color:deeppink;
 }
 
 /*signup form style*/
 .signup-page{
-  float:center;
   height: fit-content;
+  justify-self: center;
   width: 320px;
-  padding:25px;
+  padding: 0 25px 10px 25px;
   border-radius: 10px;
   border:solid 2px rgb(199, 197, 197);
   background-color: rgb(247, 250, 247);
-  margin-left: 400px;
 }
 /*Sign up icon*/
 img{
@@ -82,6 +59,7 @@ input {
     border: none; /* Remove border */
     border-radius: 5px; /* Button rounded corners */
     cursor: pointer; /* Pointer cursor on hover */
+    width: 100%;
 }
 
 .button:hover {
@@ -92,16 +70,10 @@ input {
 
 </head>
 <body> 
-<div class="all-content">
-  <!-- Home Button-->
-  <div class="home">
-    <a href="/login" class="btn"><img src="{{url_for('static',filename='css/homeicon.png')}}"></a>
-  </div>
-  
   <div class="signup-page">
         <form method="POST" action="/register">
          <div class="signup-icon">
-            <h2>SignUp Now</h2>
+            <h3>SignUp Now</h3>
             <!-- Login icon -->
            <img src="static\css\signupicon.png">
          </div> 
@@ -140,8 +112,8 @@ input {
       </div>  
       
     </form>
+            <p style="text-align: center; text-decoration: none;"><a href="/" style="text-decoration: none;">← Back to Home</a></p>
   </div>
-</div>
     <script>
         // Function to hide the error oninput in the username box
         function hideError_message() {

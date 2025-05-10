@@ -5,24 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Us - Online Course Reservation</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/allmessage.css')}}">
+
     <style>
 
         body {
             font-family: Arial, sans-serif;
             background-color:white;
             color: #333;
+            margin-top: 80px;
         }
 
         .contact-header {
+            display: flex;
+            justify-content: center;   /* Horizontal centering */
+            align-items: center;       /* Vertical centering */
+            height: 50px;              /* Set a fixed height for vertical alignment */
             background-color: #007bff;
             color: white;
-            height:90px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
             text-align: center;
+            z-index: 1000;
         }
+
         
         .contact-container {
             width: 500px;
-            margin: 20px auto;
+            margin: 0 auto;
             height: fit-content;
             padding: 20px;
             background: white;
@@ -30,65 +42,48 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        /* Diplaying contact form and home button*/
-        .main-content-class{
-            display:flex;
-        }
-
         .form-group label {
             font-weight: bold;
         }
         button{
-            background-color: pink;
+            background-color: green;
             border-radius: 5px;
             border:solid 1px black;
-        }
-        #confirm-message{
-            color:green;
+            width: 100%;
+            margin-bottom: 10px;
         }
         footer {
-        
-            text-align: center;
             padding:5px;
-            background: #007bff;
-            color: white;
+            justify-self: center;
+            color: rgb(205, 203, 203);
         }
-
-     /*--- Home button Style --*/
-      .home{
-        height:65px;
-        width:55px;
-        margin: 10px;
-      }
-       .home img{
-          height:60px;
-          width:60px;
-          border-radius: 100%;
-       }
-
     </style>
 </head>
 <body>
     <!-- Header details -->
     <div class="contact-header">
-        <h1>Contact Us</h1>
-        <p>We would love to hear from you. Reach out to us with any questions or feedback.</p>
+        <p>Contact Form</p>
     </div>
-    
- <div class="main-content-class">
-    <!-- Home Button-->
-    <div class="home">
-        <a href="/" class="btn"><img src="{{url_for('static',filename='css/homeicon.png')}}"></a>
+      <!-- Display flash messages -->
+       <div class="message">
+        <!-- Display flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'error' %}
+                        <p id="error" style="color:red"> {{ message }} </p> 
+                    {% elif category == 'success' %}
+                        <p id="success" style="color:green"> {{ message }} </p> 
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
       </div>
     <div class="contact-container">
-            {% if name and confirm %}
-               <p id="confirm-message">Dear {{name}}, {{confirm}}</p>
-            {% endif %}
-        <form action="/contact" method="POST">
-        <h2>Fill the form now</h2>
+        <form action="{{ url_for('contact') }}" method="POST">
             <div class="form-group">
                 <label for="name">Full Name</label>
-                <input type="text" class="form-control" id="name" name="name" placeholder="Enter your name" onclick="showEmptyMessage()" required>
+                <input type="text" class="form-control" id="name" name="name" placeholder="Enter your name" onclick="hideMessage();" required>
             </div>
 
             <div class="form-group">
@@ -103,16 +98,15 @@
             
             <button type="submit">Submit</button>
         </form>
-    </div>
+        <p style="text-align: center; text-decoration: none;"><a href="/" style="text-decoration: none;">← Back to Home</a></p>
 </div>
-
+    <footer class="footer">
+        <p>&copy; 2024 Online Course Reservation System. All rights reserved.</p>
+    </footer>
     <script>
-        function showEmptyMessage(){
-            document.getElementById('confirm-message').innerHTML='';
+        function hideMessage(){
+            document.querySelector('.message').style.display="none";
         }
     </script>
-    <footer>
-        <p>&copy; 2024 Online Course Reservation. All rights reserved.</p>
-    </footer>
 </body>
 </html>

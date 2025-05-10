@@ -1,0 +1,8 @@
+.message{
+    text-align: center;
+    justify-content: center;
+    justify-self: center;
+    font-size: large;
+    font-weight: bold;
+    display: block;
+}
