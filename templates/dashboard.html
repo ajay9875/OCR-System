@@ -6,6 +6,8 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='pic/logo.png') }}">
+
     <title>Ai-Powerred Course Recommendation</title>
     
     <style>
@@ -114,6 +116,7 @@ input {
         border-radius: 100%;
         height:50px;
         width:50px;
+        border: groove 2px black;
     }
     #error {
         color:red;
@@ -140,6 +143,7 @@ input {
       width:40px;
       margin:5px;
       border-radius: 100%;
+      border: groove 2px black;
     }
     
     .logo-image-greet{
@@ -223,7 +227,7 @@ input {
 {% endwith %}
 </div>
     <div class="logo-image">
-        <img src="static\css\logo.jpg">
+        <img src="static\pic\logo.png">
       </div>
    </div>
     <!-- Login Form -->
