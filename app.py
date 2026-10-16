@@ -24,6 +24,26 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # Protects against CSRF in cross-
 # Prevent denial-of-service (DoS) attacks by limiting the size of incoming requests
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB limit
 
+
+def parse_session_time(value):
+    """
+    Parse a timestamp stored in the sessions table.
+    Handles both formats:
+      - '2026-10-17 04:39:13.123456'  (with microseconds)
+      - '2026-10-17 04:39:13'         (without microseconds)
+    Returns a datetime, or None if parsing fails.
+    """
+    if value is None:
+        return None
+    s = str(value)
+    for fmt in ('%Y-%m-%d %H:%M:%S.%f', '%Y-%m-%d %H:%M:%S'):
+        try:
+            return datetime.strptime(s, fmt)
+        except ValueError:
+            continue
+    print(f"[parse_session_time] Unrecognized format: {s!r}")
+    return None
+
 # =============================================================
 # Context processor: makes admin-related flags available
 # to EVERY template automatically (base.html, base_loggedin.html,
@@ -796,16 +816,17 @@ def adminLogout():
         data = cursor.fetchone()
 
         if data:
-            # Parse login time and calculate active duration
-            login_time = datetime.strptime(data[0], '%Y-%m-%d %H:%M:%S.%f')
-            active_time = str(logout_time - login_time)
+            login_dt = parse_session_time(data[0])
+            active_time = str(logout_time - login_dt) if login_dt else None
 
-            # Update session logout details
             cursor.execute('''
-                UPDATE sessions 
-                SET logged_in = ?, logout_time = ?, active_time = ? 
+                UPDATE sessions
+                SET logged_in = ?, logout_time = ?, active_time = ?
                 WHERE user_id = ?
-            ''', (logged_in, logout_time.strftime('%Y-%m-%d %H:%M:%S.%f'), active_time, admin_id))
+            ''', (logged_in,
+                logout_time.strftime('%Y-%m-%d %H:%M:%S'),
+                active_time,
+                admin_id))
             db_sessions.commit()
 
     except Exception as e:
@@ -1840,44 +1861,64 @@ def show_message():
 # Route to Logout by User
 @app.route('/logout', methods=['POST'])
 def logout():
-    if 'user_id' in session:
-        if request.method == 'POST':
-            user_id = session.get('user_id')
-            logged_in = False
-            logout_time = datetime.now()                
-            db = get_sessions_db() 
-            cursor = db.cursor()
-            if user_id:
-                cursor.execute('''SELECT
-                               login_time FROM sessions
-                               WHERE user_id = ?
-                               ''',(user_id,))
-                data = cursor.fetchone()
+    user_id = session.get('user_id')
 
-                if data:
-                    #Ensure correct format of date time
-                    logout_time = datetime.strptime(str(logout_time),'%Y-%m-%d %H:%M:%S.%f')
-                    login_time = datetime.strptime(str(data[0]),'%Y-%m-%d %H:%M:%S.%f')
-                    active_time = str(logout_time - login_time)
-                    formatted_logout_time = logout_time.strftime('%Y-%m-%d %H:%M:%S')
-                    cursor.execute('''UPDATE sessions
-                                SET logged_in = ?, logout_time = ?,
-                                active_time = ? WHERE user_id = ?
-                                ''',(logged_in, str(formatted_logout_time), active_time, user_id))
-                    db.commit()
-                    session.pop('user_id', None) 
-                    flash("You have been logged out!", 'info')
-                    return redirect(url_for('login'))
-                
-                session.pop('user_id', None)  
-                flash("You have been logged out!", 'info')
-                return redirect(url_for('login'))
-            session.pop('user_id', None)  
-            return redirect(url_for('login'))
-        session.pop('user_id', None)  
+    # Even if no user_id, clear the session and go home
+    if not user_id:
+        session.clear()
+        flash("You have been logged out!", 'info')
         return redirect(url_for('login'))
-    session.pop('user_id', None)  
-    return None 
+
+    try:
+        logged_in   = False
+        logout_time = datetime.now()
+
+        db  = get_sessions_db()
+        cur = db.cursor()
+
+        # Fetch the stored login_time for this user
+        cur.execute(
+            "SELECT login_time FROM sessions WHERE user_id = ?",
+            (user_id,)
+        )
+        data = cur.fetchone()
+
+        if data:
+            login_dt = parse_session_time(data[0])
+
+            # Only calculate active_time if we could parse the login time
+            if login_dt is not None:
+                active_time = str(logout_time - login_dt)
+            else:
+                active_time = None
+
+            formatted_logout_time = logout_time.strftime('%Y-%m-%d %H:%M:%S')
+
+            cur.execute(
+                """UPDATE sessions
+                   SET logged_in = ?, logout_time = ?, active_time = ?
+                   WHERE user_id = ?""",
+                (logged_in, formatted_logout_time, active_time, user_id)
+            )
+            db.commit()
+
+    except Exception as e:
+        print(f"[LOGOUT] session update failed: {e}")
+
+    # Always clear the user-side session and redirect
+    session.pop('user_id', None)
+    session.pop('username', None)
+    session.pop('profile_pic', None)
+    session.pop('session_id', None)
+    session.pop('ip_address', None)
+
+    # 👇 Important: if this was an admin who switched over, clear admin session too
+    session.pop('admin_id', None)
+    session.pop('admin_name', None)
+    session.pop('admin_ip', None)
+
+    flash("You have been logged out!", 'info')
+    return redirect(url_for('login'))
           
 #------------------------------------------------------------------------------------
 
