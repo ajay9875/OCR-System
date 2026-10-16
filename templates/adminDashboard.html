@@ -1,672 +1,1035 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='pic/logo.png') }}">
+{% extends "base_admin.html" %}
 
-    <style>
-        
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
+{% block title %}Admin Dashboard | AI Course Recommendation{% endblock %}
 
-        .home {
-            height: 65px;
-            width: 55px;
-            margin: 5px;
-            position:fixed;
-        }
-        .home img {
-            height: 60px;
-            width: 60px;
-            border-radius: 100%;
-        }
-
-        .admin-container {
-            width: fit-content;
-            margin:20px 200px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        .nav {
-            display: flex;
-            justify-content: space-around;
-            background: #333;
-            padding: 10px;
-        }
-        .nav a {
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-        }
-        .nav a:hover {
-            background: #575757;
-            border-radius: 5px;
-        }
-        .section {
-            display: none;
-            padding: 20px;
-            background:white;
-            width: fit-content;
-            justify-self: center;
-            border-radius: 10px;
-        }
-        .active {
-            display: block;
-        }
-        table {
-            width: fit-content;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-        }
-        th {
-            background: #333;
-            color: white;
-        }
-
-        .btn-container #delete-btn{
-            background: red;
-            border-radius: 5px;
-            border:groove 2px rgb(141, 1, 1);
-            padding:3px;
-        }
-        .btn-container #delete-btn:hover{
-            background: rgb(226, 2, 2);
-            border-radius: 5px;
-            padding:3px;
-        }
-        .adminName{
-            justify-self: center;
-            text-align: center;
-        }
-/* User section style */
-.addNewUser{
-    width:fit-content;
-    padding:20px;
-    background-color: rgba(165, 165, 165, 0.644);
-    border: solid 4px rgb(245, 234, 213)
-}
-.updateUser-container{
+{% block extra_css %}
+<style>
+  /* ============================================================
+     PAGE HEADER
+     ============================================================ */
+  .page-header {
     display: flex;
-    justify-content: space-around;
-}
-.updateUser{
-    display:none;
-}
-
-/* Courses section style */
-/* Add new  course */
-h3{
-    color:#2196f3;
-}
-.addnewCourse{
-    width:fit-content;
-    padding:20px;
-    background-color: rgba(165, 165, 165, 0.644);
-    border: solid 4px rgb(245, 234, 213)
-}
-.edit-btn{
-    background-color: rgb(255, 177, 74);
-    border-radius: 5px;
-    display: block;
-}
-.delete-btn {
-    background-color: rgb(238, 40, 40);
-    border-radius: 5px;
-}
-button:hover{
-    cursor:pointer;
-}
-.btn-container{
-    display:flex;
+    align-items: flex-end;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .page-header h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #0b1e3a;
+    margin-bottom: 0.3rem;
+  }
+  .page-header p {
+    color: #64748b;
+    font-size: 0.98rem;
+  }
+
+  /* ============================================================
+     STATS GRID
+     ============================================================ */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 2.5rem;
+  }
+  .stat-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 1.5rem;
+    border: 1px solid #eef2f6;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+  }
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 30px -16px rgba(37, 99, 235, 0.15);
+  }
+  .stat-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+    display: flex; align-items: center; justify-content: center;
+    color: #2563eb;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  .stat-info h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0b1e3a;
+    line-height: 1.1;
+  }
+  .stat-info p {
+    font-size: 0.82rem;
+    color: #64748b;
+    margin-top: 2px;
+  }
+
+  /* ============================================================
+     SECTION CARD
+     ============================================================ */
+  .section-card {
+    background: #ffffff;
+    border-radius: 24px;
+    border: 1px solid #eef2f6;
+    box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.06);
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  .section-card h2 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #0b1e3a;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-card h2 i {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+    border-radius: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #2563eb;
+    font-size: 1rem;
+  }
+  .section-card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 1rem;
+    margin-top: 1.5rem;
+  }
+  .section-card h3:first-of-type { margin-top: 0; }
+
+  /* ============================================================
+   LOGOUT CONFIRMATION MODAL
+   ============================================================ */
+.logout-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 30, 58, 0.5);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 2000;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.logout-modal-overlay.active {
+  display: flex;
+  opacity: 1;
 }
 
-.updateForm{
-    display: none;
+.logout-modal {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 2.5rem 2rem 2rem;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.3);
+  border: 1px solid #eef2f6;
+  transform: scale(0.94) translateY(8px);
+  transition: transform 0.25s ease;
+  animation: adminModalPop 0.25s ease forwards;
+}
+@keyframes adminModalPop {
+  to { transform: scale(1) translateY(0); }
 }
 
-/* Signup page style */
-#signup label,input,button{
-    display:flex;
-    margin-bottom: 10px;
+.logout-modal-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.2rem;
+  box-shadow: 0 10px 24px -10px rgba(239, 68, 68, 0.4);
 }
-#signup input{
-    width:250px;
-}
-
-#signup img{
-    height:65px;
-    width:65px;
-    margin-left: 95px;
-}
-#signup .addAdmin{
-    height: fit-content;
-    width:fit-content;
-    padding:20px;
-    background-color: rgba(165, 165, 165, 0.644);
-    border: solid 4px rgb(245, 234, 213)
+.logout-modal-icon i {
+  font-size: 1.8rem;
+  color: #dc2626;
 }
 
-/* Style for flashed-messages with their categories */
-.flash-container {
+.logout-modal h3 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0b1e3a;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.logout-modal p {
+  color: #64748b;
+  font-size: 0.94rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.logout-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.logout-modal-actions button,
+.logout-modal-actions a {
+  flex: 1;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: none;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  text-decoration: none;
+}
+
+.btn-cancel {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0 !important;
+}
+.btn-cancel:hover {
+  background: #e2e8f0;
+  color: #0b1e3a;
+}
+
+.btn-confirm {
+  background: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 10px 20px -8px rgba(220, 38, 38, 0.5);
+}
+.btn-confirm:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px -8px #b91c1c;
+}
+
+@media (max-width: 480px) {
+  .logout-modal { padding: 2rem 1.5rem 1.5rem; border-radius: 20px; }
+  .logout-modal-actions { flex-direction: column; }
+  .logout-modal h3 { font-size: 1.2rem; }
+}
+
+  /* ============================================================
+     FORMS
+     ============================================================ */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+  }
+  .form-field { display: flex; flex-direction: column; gap: 0.35rem; }
+  .form-field label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #334155;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .form-field input,
+  .form-field select {
     width: 100%;
-    max-width: 600px;
-    margin: 20px auto;
-    padding: 10px;
-}
+    padding: 0.7rem 0.9rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.92rem;
+    color: #1e293b;
+    background: #f8fafc;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .form-field input:focus {
+    border-color: #2563eb;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+  }
 
-/* General styles for all flash messages */
-.flash-message {
-    padding: 15px 20px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    font-size: 16px;
-    font-weight: bold;
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.75rem 1.4rem;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: #2563eb;
+    color: #ffffff;
+    box-shadow: 0 8px 16px -6px rgba(37, 99, 235, 0.4);
+  }
+  .btn-primary:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px -8px #1d4ed8;
+  }
+  .btn-edit {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.82rem;
+    border-radius: 10px;
+  }
+  .btn-edit:hover {
+    background: #fde68a;
+    color: #78350f;
+  }
+  .btn-delete {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.82rem;
+    border-radius: 10px;
+  }
+  .btn-delete:hover {
+    background: #ef4444;
+    color: #ffffff;
+    border-color: #ef4444;
+  }
+  .btn-danger {
+    background: #dc2626;
+    color: #ffffff;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.82rem;
+    border-radius: 10px;
+  }
+  .btn-danger:hover { background: #b91c1c; }
+
+  /* ============================================================
+     TABLES
+     ============================================================ */
+  .table-wrap {
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #eef2f6;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+    margin-top: 1rem;
+  }
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  .admin-table thead th {
+    background: #f8fafc;
+    color: #475569;
+    text-align: left;
+    padding: 0.85rem 1rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border-bottom: 1px solid #eef2f6;
+    white-space: nowrap;
+  }
+  .admin-table tbody td {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: middle;
+  }
+  .admin-table tbody tr:last-child td { border-bottom: none; }
+  .admin-table tbody tr:hover { background: #f8fafc; }
+
+  .badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: 'SF Mono', Monaco, monospace;
+  }
+  .badge-code { background: #e0e7ff; color: #1e40af; }
+  .badge-id   { background: #f1f5f9; color: #475569; }
+
+  .status-dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .status-dot.active   { background: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); }
+  .status-dot.inactive { background: #ef4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15); }
+
+  .actions-cell {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  /* Update form (inline) */
+  .update-form {
+    display: none;
+    background: #f8fafc;
+    border: 1px solid #eef2f6;
+    border-radius: 14px;
+    padding: 1rem;
+    margin-top: 0.8rem;
+    grid-column: 1 / -1;
+  }
+  .update-form .form-grid { margin-bottom: 0.6rem; }
+  .update-form.show { display: block; }
+
+  /* Empty state */
+  .empty-state {
     text-align: center;
-    color: #fff;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+    padding: 3rem 1rem;
+    color: #64748b;
+  }
+  .empty-state i {
+    font-size: 2.5rem;
+    color: #cbd5e1;
+    margin-bottom: 0.8rem;
+    display: block;
+  }
 
-/* Success message styles */
-.flash-message.success {
-    color: #4caf50; /* Green */
-    border: 1px solid #fff7ef;
-}
+  /* Section display */
+  .page-section { display: none; }
+  .page-section.active { display: block; animation: fadeIn 0.25s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
-/* Error message styles */
-.flash-message.error {
-    color: #f44336; /* Red */
-    border: 1px solid #fff7ef;
-}
+  @media (max-width: 768px) {
+    .section-card { padding: 1.5rem; border-radius: 20px; }
+    .admin-table thead { display: none; }
+    .admin-table, .admin-table tbody, .admin-table tr, .admin-table td {
+      display: block; width: 100%;
+    }
+    .admin-table tr {
+      border-bottom: 1px solid #eef2f6;
+      padding: 1rem;
+    }
+    .admin-table td {
+      border: none;
+      padding: 0.3rem 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+    .admin-table td::before {
+      content: attr(data-label);
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #94a3b8;
+    }
+    .actions-cell { justify-content: flex-end; padding-top: 0.6rem; }
+  }
 
-/* Info message styles */
-.flash-message.info {
-    color: #2196f3; /* Blue */
-}
-
-/* Warning message styles */
-.flash-message.warning {
-    color: #ff9800; /* Orange */
-}     
-        .btn-container #force-logout-btn {
-            color: white;
-            background-color: red;
-            padding: 10px;
-            border: groove 1px black;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .btn-container #force-logout-btn:hover {
-            background-color: #e91405;
-        }
-        #active{
-          background-color: green;
-          width: 7px;
-          height: 7px;
-          border-radius: 100%;
-          margin-left: 1px;
-        }
-        #inactive{
-          background-color:#e91405;
-          width: 7px;
-          height: 7px;
-          border-radius: 100%;
-          margin-left: 1px;
-        }
-        #signup,#users,#courses,#session,#enrolledCourse{
-            width: fit-content;
-        }
-
+  @media (max-width: 480px) {
+    .page-header h1 { font-size: 1.4rem; }
+    .stat-info h3 { font-size: 1.2rem; }
+  }
 </style>
-</head>
+{% endblock %}
 
+{% block content %}
 
-<body>
+<!-- ============ PAGE HEADER ============ -->
+<div class="page-header">
+  <div>
+    <h1>Welcome back, {{ adminName or 'Admin' }} 👋</h1>
+    <p>Manage your platform — users, courses, sessions, and more.</p>
+  </div>
+</div>
 
-    <!-- Nav bar body -->
-    <div class="nav">
-        <a href="/adminDashboard">Home</a>
-        <a href="#manage_admins" onclick="showSection('signup')">Manage Admins</a>
-        <a href="#manage_users" onclick="showSection('users')">Manage Users</a>
-        <a href="#manage_courses" onclick="showSection('courses')">Manage Courses</a>
-        <a href="#manage_sessions" onclick="showSection('session')">Manage Sessions</a>
-        <a href="#enrolled_courses" onclick="showSection('enrolledcourse')">Enrolled Courses</a>
-        <a href="/adminLogout">Logout</a>
+<!-- ============ STATS ============ -->
+<div class="stats-grid">
+  <div class="stat-card" onclick="goToSection('users')">
+    <div class="stat-icon"><i class="fas fa-users"></i></div>
+    <div class="stat-info">
+      <h3>{{ allusers|length if allusers else 0 }}</h3>
+      <p>Total Users</p>
     </div>
+  </div>
+  <div class="stat-card" onclick="goToSection('courses')">
+    <div class="stat-icon"><i class="fas fa-book"></i></div>
+    <div class="stat-info">
+      <h3>{{ allcourses|length if allcourses else 0 }}</h3>
+      <p>Total Courses</p>
+    </div>
+  </div>
+  <div class="stat-card" onclick="goToSection('signup')">
+    <div class="stat-icon"><i class="fas fa-user-shield"></i></div>
+    <div class="stat-info">
+      <h3>{{ alladmins|length if alladmins else 0 }}</h3>
+      <p>Total Admins</p>
+    </div>
+  </div>
+  <div class="stat-card" onclick="goToSection('session')">
+    <div class="stat-icon"><i class="fas fa-signal"></i></div>
+    <div class="stat-info">
+      <h3>{{ allsessions|length if allsessions else 0 }}</h3>
+      <p>Total Sessions</p>
+    </div>
+  </div>
+  <div class="stat-card" onclick="goToSection('enrolledcourse')">
+    <div class="stat-icon"><i class="fas fa-graduation-cap"></i></div>
+    <div class="stat-info">
+      <h3>{{ allenrolledcourses|length if allenrolledcourses else 0 }}</h3>
+      <p>Enrollments</p>
+    </div>
+  </div>
+</div>
 
-    <div class="adminName">    
-        {% if adminName %}
-           <h4> Welcome back, {{ adminName }}! 👋 </h4>
-        {% else %}
-          <label>Hello, Guest</label>
-        {% endif %}
-    </div> 
+<!-- ============ ADMIN REGISTRATION SECTION ============ -->
+<section id="signup" class="page-section active">
+  <div class="section-card">
+    <h2><i class="fas fa-user-shield"></i> Add New Admin</h2>
 
-    <!-- Flashed messages -->
-    {% with messages = get_flashed_messages(with_categories=True) %}
-    {% if messages %}
-        <div class="flash-container">
-            {% for category, message in messages %}
-                <div class="flash-message {{ category }}">
-                    {{ message }}
+    <form method="POST" action="/registerAdmin">
+      {% if error_message %}
+        <div class="flash error" style="margin-bottom: 1rem;">
+          <i class="fas fa-exclamation-circle"></i>
+          <span>{{ error_message }}</span>
+        </div>
+      {% endif %}
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="username">Admin Name</label>
+          <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-field">
+          <label for="phonenumber">Phone Number</label>
+          <input type="number" id="phonenumber" name="phone_number" required>
+        </div>
+        <div class="form-field">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-field">
+          <label for="newpassword">Password</label>
+          <input type="password" id="newpassword" name="newpassword" required>
+        </div>
+        <div class="form-field">
+          <label for="confirmpassword">Confirm Password</label>
+          <input type="password" id="confirmpassword" name="confirmpassword" required>
+        </div>
+        <div class="form-field">
+          <label for="securityPin">Security PIN</label>
+          <input type="number" id="securityPin" name="securityPin" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-user-plus"></i> Register Admin
+      </button>
+    </form>
+
+    <h3>All Admins</h3>
+    {% if alladmins %}
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>ID</th>
+              <th>Admin Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for admin in alladmins %}
+            <tr>
+              <td data-label="#">{{ loop.index }}</td>
+              <td data-label="ID"><span class="badge badge-id">{{ admin['id'] }}</span></td>
+              <td data-label="Admin">{{ admin['username'] }}</td>
+              <td data-label="Email">{{ admin['email'] }}</td>
+              <td data-label="Phone">{{ admin['phone_number'] }}</td>
+              <td data-label="Actions" style="text-align:right;">
+                <div class="actions-cell">
+                  <form method="POST" action="/deleteAdmin">
+                    <input type="hidden" name="admin_id" value="{{ admin['id'] }}">
+                    <input type="hidden" name="admin_email" value="{{ admin['email'] }}">
+                    <button type="submit" class="btn btn-delete">
+                      <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                  </form>
                 </div>
+              </td>
+            </tr>
             {% endfor %}
-        </div>
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <i class="fas fa-user-shield"></i>
+        <p>No admins to show.</p>
+      </div>
     {% endif %}
-    {% endwith %}
+  </div>
+</section>
 
-    <div class="admin-container">
-        <!-- Admin Registration Section -->
-        <div id="signup" class="section">
-            <h2>Add new admin</h2>
-            <form method="POST" action="/registerAdmin" class="addAdmin">
-                <div class="signup-icon">
-                    <img src="static\css\signupicon.png">
-                </div>
-                <div class="error">
-                    {% if error_message %}
-                        <label id="error">{{ error_message }}</label>
-                    {% endif %}
+<!-- ============ USERS SECTION ============ -->
+<section id="users" class="page-section">
+  <div class="section-card">
+    <h2><i class="fas fa-users"></i> Manage Users</h2>
+
+    <h3>Add New User</h3>
+    <form method="POST" action="/newUser">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Username</label>
+          <input type="text" name="username" required>
+        </div>
+        <div class="form-field">
+          <label>Phone Number</label>
+          <input type="number" name="phone_number" required>
+        </div>
+        <div class="form-field">
+          <label>Email</label>
+          <input type="email" name="email" required>
+        </div>
+        <div class="form-field">
+          <label>Password</label>
+          <input type="password" name="newpassword" required>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-user-plus"></i> Add User
+      </button>
+    </form>
+
+    <h3>All Users</h3>
+    {% if allusers %}
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Created</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in allusers %}
+            <tr>
+              <td data-label="#">{{ loop.index }}</td>
+              <td data-label="ID"><span class="badge badge-id">{{ user['user_id'] }}</span></td>
+              <td data-label="Username">{{ user['username'] }}</td>
+              <td data-label="Email">{{ user['email'] }}</td>
+              <td data-label="Phone">{{ user['phone_number'] }}</td>
+              <td data-label="Created">{{ user['created_at'] }}</td>
+              <td data-label="Actions" style="text-align:right;">
+                <div class="actions-cell">
+                  <button type="button" class="btn btn-edit"
+                          onclick="toggleUpdate(this, 'update-user-{{ user['user_id'] }}')">
+                    <i class="fas fa-pen"></i> Update
+                  </button>
+                  <form method="POST" action="/deleteUser">
+                    <input type="hidden" name="user_id" value="{{ user['user_id'] }}">
+                    <button type="submit" class="btn btn-delete">
+                      <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                  </form>
                 </div>
 
-                <div class="username-input">
-                    <label for="username">Enter Admin Name</label>
-                    <input type="text" class="form-control" id="username" onclick="hideError_message()" name="username" required>
-                </div>
-
-                <div class="phone-number-input">
-                    <label for="phonenumber" class="form-label">Enter Phone Number</label>
-                    <input type="number" class="form-control" id="phonenumber" name="phone_number" required>
-                </div>
-
-                <div class="email-input">
-                    <label for="email" class="form-label">Enter Email Address</label>
-                    <input type="email" class="form-control" id="email" name="email" required>
-                </div>
-
-                <div class="newpass">
-                    <label for="password" class="form-label">Create Password</label>
-                    <input type="password" class="form-control" id="newpassword" name="newpassword" required>
-                </div>
-
-                <div class="cpass">
-                    <label for="confirmpassword" class="form-label">Re-enter Password</label>
-                    <input type="password" class="form-control" id="confirmpassword" name="confirmpassword" required>
-                </div>
-                <div class="cpass">
-                    <label for="securityPin" class="form-label">Create Security Pin</label>
-                    <input type="number" class="form-control" id="securityPin" name="securityPin" required>
-                </div>
-                <div class="button">
-                    <button class="button submit-button">Register</button>
-                </div>
-            </form>
-
-                <!-- To show all users -->
-                {% if alladmins %}
-                  <h3>All Admins</h3>
-                        <table>
-                            <tr>
-                                <th>Serial No.</th>
-                                <th>Id</th>
-                                <th>Admin Name</th>
-                                <th>Email</th>
-                                <th>Phone Number</th>
-                                <th>Actions</th>
-                            </tr>
-                            {% for admin in alladmins %}
-                            <tr>
-                                <td>{{ loop.index }}</td>
-                                <td>{{ admin['id'] }}</td>
-                                <td>{{ admin['username'] }}</td>
-                                <td>{{ admin['email'] }}</td>
-                                <td>{{ admin['phone_number'] }}</td>
-                                <td>
-                                    <form method="POST" action="/deleteAdmin" class="deleteAdmin">
-                                        <input type="hidden" name="admin_id" value="{{ admin['id'] }}">
-                                        <input type="hidden" name="admin_email" value="{{ admin['email'] }}">
-   
-                                        <button type="submit" class="delete-btn">Delete</button>
-                                    </form>
-                                </td>      
-                            </tr>
-                            {% endfor %}
-                        </table>
-                        {% else %}
-                            <p>No user to show, please add new user now.</p>
-                        {% endif %}
+                <form id="update-user-{{ user['user_id'] }}"
+                      class="update-form"
+                      method="POST" action="/updateUser">
+                  <input type="hidden" name="user_id" value="{{ user['user_id'] }}">
+                  <div class="form-grid">
+                    <div class="form-field">
+                      <label>Username</label>
+                      <input type="text" name="username" value="{{ user['username'] }}" required>
                     </div>
-                </div>
+                    <div class="form-field">
+                      <label>Phone</label>
+                      <input type="number" name="phone_number" value="{{ user['phone_number'] }}" required>
+                    </div>
+                    <div class="form-field">
+                      <label>Email</label>
+                      <input type="email" name="email" value="{{ user['email'] }}" required>
+                    </div>
+                    <div class="form-field">
+                      <label>New Password</label>
+                      <input type="password" name="password" required>
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <i class="fas fa-users"></i>
+        <p>No users to show yet.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
 
-        <!-- Manage Users Section -->
-        <div id="users" class="section">
-            <h2>Manage Users</h2>
-            <!-- Add New User Form -->
-            <h3>Add New User</h3>
-          <div class="addNewUser">
-            <form method="POST" action="/newUser">
-                <div class="username-input">
-                    <label for="username">Enter Username</label>
-                    <input type="text" name="username" placeholder="" required>
-                </div>
+<!-- ============ COURSES SECTION ============ -->
+<section id="courses" class="page-section">
+  <div class="section-card">
+    <h2><i class="fas fa-book"></i> Manage Courses</h2>
 
-                <div class="phone-number-input">
-                    <label for="phone_number" class="form-label">Enter Phone Number</label>
-                    <input type="number" name="phone_number" placeholder="" required>
-                </div>
-
-                <div class="email-input">
-                    <label for="email" class="form-label">Enter Email Address</label>
-                    <input type="email" class="form-control" name="email" placeholder="" required>
-                </div>
-
-                <div class="newpass">
-                    <label for="password" class="form-label">Create Password</label>
-                    <input type="password" class="form-control" name="newpassword" placeholder="" required>
-                </div>
-
-                <div class="button">
-                    <button type="submit">Add User</button>
-                </div>
-            </form>
-          </div>
-            <!-- To show all users -->
-            {% if allusers %}
-            <h3>All Users</h3>
-            <table>
-                <tr>
-                    <th>Serial No.</th>
-                    <th>Id</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Phone Number</th>
-                    <th>Creation Date</th>
-                    <th>Actions</th>
-                </tr>
-                {% for user in allusers %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ user['user_id'] }}</td>
-                    <td>{{ user['username'] }}</td>
-                    <td>{{ user['email'] }}</td>
-                    <td>{{ user['phone_number'] }}</td>
-                    <td>{{ user['created_at'] }}</td>
-                    <td>
-                        <div class="updateUser-container">
-                            <button type="button" class="edit-btn" onclick="showUpdateUserSection(this)">Update</button>
-                            <!-- Update User Form -->
-                            <form class="updateUser" method="POST" action="/updateUser">
-                                <input type="hidden" name="user_id" value="{{ user['user_id'] }}">
-                                
-                                <label>Username</label>
-                                <input type="text" name="username" value="{{ user['username'] }}" required>
-                                
-                                <label>Phone Number</label>
-                                <input type="number" name="phone_number" value="{{ user['phone_number'] }}" required>
-                                
-                                <label>Email</label>
-                                <input type="email" name="email" value="{{ user['email'] }}" required>
-                                
-                                <label>Password</label>
-                                <input type="password" name="password" required>
-                                
-                                <button type="submit">Update User</button>
-                            </form>
-                            <form method="POST" action="/deleteUser">
-                                <input type="hidden" name="user_id" value="{{ user['user_id'] }}">
-
-                                <button type="submit" class="delete-btn">Delete</button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
-            {% else %}
-                <p>No user to show, please add new user now.</p>
-            {% endif %}
+    <h3>Add New Course</h3>
+    <form method="POST" action="/addnewCourse">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Course Code</label>
+          <input type="text" name="course_code" required>
         </div>
-
-        <!-- Manage Courses Section -->
-        <div id="courses" class="section">
-            <h2>Manage Courses</h2>
-            <h3>Add new course</h3>
-        <div class="addnewCourse">
-
-            <form method="POST" action="/addnewCourse">
-              <label>Course Code</label>
-              <input type="text" name="course_code" placeholder="" required>
-
-              <label>Course Name</label>
-              <input type="text" name="course_name" placeholder="" required>
-
-              <label>Course Unit</label>
-              <input type="number" name="course_unit" placeholder="" required>
-
-              <label>Seat Limit</label>
-              <input type="number" name="seat_limit" placeholder="" required>
-
-              <button type="submit">Add Course</button>
-            </form>
+        <div class="form-field">
+          <label>Course Name</label>
+          <input type="text" name="course_name" required>
         </div>
-
-            <h3>All Courses</h3>
-            <table>
-                <tr>
-                    <th>S.No.</th>
-                    <th>Id</th>
-                    <th>Course Code</th>
-                    <th>Course Name</th>
-                    <th>Course Unit</th>
-                    <th>Seat Limit</th>
-                    <th>Actions</th>
-                </tr>
-                {% for course in allcourses %}
-                <tr id="course-{{ course['id'] }}">
-                    <td>{{ loop.index }}</td>
-                    <td>{{ course['id'] }}</td>
-                    <td>{{ course['course_code'] }}</td>
-                    <td>{{ course['course_name'] }}</td>
-                    <td>{{ course['course_unit'] }}</td>
-                    <td>{{ course['seat_limit'] }}</td>
-                    <td>
-                        <div class="btn-container">
-                            <button type="button" class="edit-btn" onclick="openUpdateForm(this)">Update</button>
-
-                            <!-- Form to update courses -->
-                            <form class="updateForm" method="POST" action="{{ url_for('updateCourse') }}">
-                                <input type="hidden" name="course_id" value="{{ course['id'] }}">
-
-                                <label>Course Code:</label>
-                                <input type="text" name="course_code" value="{{ course['course_code'] }}" required>
-
-                                <label>Course Name:</label>
-                                <input type="text" name="course_name" value="{{ course['course_name'] }}" required>
-
-                                <label>Seat Limit:</label>
-                                <input type="number" name="seat_limit" value="{{ course['seat_limit'] }}" required>
-
-                                <label>Course Unit:</label>
-                                <input type="number" name="course_unit" value="{{ course['course_unit'] }}" required>
-
-                                <button type="submit">Update Course</button>
-                            </form>
-
-                            <!-- Delete form -->
-                            <form method="POST" action="/deleteCourse">
-                                <input type="hidden" name="course_id" value="{{ course['id'] }}">
-                                <button type="submit" class="delete-btn">Delete</button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
+        <div class="form-field">
+          <label>Course Unit</label>
+          <input type="number" name="course_unit" required>
         </div>
+        <div class="form-field">
+          <label>Seat Limit</label>
+          <input type="number" name="seat_limit" required>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Add Course
+      </button>
+    </form>
 
-       <!-- Manage session section -->
-       <div id="session" class="section">
-        <h2>Session Management</h2>
-        {% if allsessions %}
-            <h3>All Users and Admins Sessions</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Sl.No.</th>
-                        <th>Session ID</th>
-                        <th>User/Admin ID</th>
-                        <th>IP Address</th>
-                        <th>Active</th>
-                        <th>Last Login</th>
-                        <th>Last Logout</th>
-                        <th>Active Time</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for session in allsessions %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ session['session_id'] }}</td>
-                        <td>
-                            {% if session['admin_id'] %}
-                                Admin: {{ session['admin_id'] }}
-                            {% else %}
-                                User: {{ session['user_id'] }}
-                            {% endif %}
-                        </td>
-                        <td>{{ session['IP_address'] }}</td>
-                        <td>
-                            {{ session['logged_in'] }}
-                            {% if session['logged_in'] %}
-                                <p id="active"></p>
-                            {% else %}
-                                <p id="inactive"></p>
-                            {% endif %}
-                        </td>
-                        <td>{{ session['login_time'] }}</td>
-                        <td>{{ session['logout_time'] }}</td>
-                        <td>{{ session['active_time'] }}</td>
-                        <td>
-                            <div class="btn-container">
-                                <form action="/forceLogout" method="POST">
-                                    {% if session['admin_id'] %}
-                                        <input type="hidden" name="admin_id" value="{{ session['admin_id'] }}">
-                                    {% elif session['user_id'] %}
-                                        <input type="hidden" name="user_id" value="{{ session['user_id'] }}">
-                                    {% endif %}
-                                    <button id="force-logout-btn">Delete</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No session to show.</p>
-        {% endif %}
+    <h3>All Courses</h3>
+    {% if allcourses %}
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>ID</th>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Units</th>
+              <th>Seats</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for course in allcourses %}
+            <tr id="course-{{ course['id'] }}">
+              <td data-label="#">{{ loop.index }}</td>
+              <td data-label="ID"><span class="badge badge-id">{{ course['id'] }}</span></td>
+              <td data-label="Code"><span class="badge badge-code">{{ course['course_code'] }}</span></td>
+              <td data-label="Name">{{ course['course_name'] }}</td>
+              <td data-label="Units">{{ course['course_unit'] }}</td>
+              <td data-label="Seats">{{ course['seat_limit'] }}</td>
+              <td data-label="Actions" style="text-align:right;">
+                <div class="actions-cell">
+                  <button type="button" class="btn btn-edit"
+                          onclick="toggleUpdate(this, 'update-course-{{ course['id'] }}')">
+                    <i class="fas fa-pen"></i> Update
+                  </button>
+                  <form method="POST" action="/deleteCourse">
+                    <input type="hidden" name="course_id" value="{{ course['id'] }}">
+                    <button type="submit" class="btn btn-delete">
+                      <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                  </form>
+                </div>
+
+                <form id="update-course-{{ course['id'] }}"
+                      class="update-form"
+                      method="POST" action="{{ url_for('updateCourse') }}">
+                  <input type="hidden" name="course_id" value="{{ course['id'] }}">
+                  <div class="form-grid">
+                    <div class="form-field">
+                      <label>Course Code</label>
+                      <input type="text" name="course_code" value="{{ course['course_code'] }}" required>
+                    </div>
+                    <div class="form-field">
+                      <label>Course Name</label>
+                      <input type="text" name="course_name" value="{{ course['course_name'] }}" required>
+                    </div>
+                    <div class="form-field">
+                      <label>Seat Limit</label>
+                      <input type="number" name="seat_limit" value="{{ course['seat_limit'] }}" required>
+                    </div>
+                    <div class="form-field">
+                      <label>Course Unit</label>
+                      <input type="number" name="course_unit" value="{{ course['course_unit'] }}" required>
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <i class="fas fa-book"></i>
+        <p>No courses to show.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- ============ SESSIONS SECTION ============ -->
+<section id="session" class="page-section">
+  <div class="section-card">
+    <h2><i class="fas fa-signal"></i> Session Management</h2>
+
+    {% if allsessions %}
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Session ID</th>
+              <th>User / Admin</th>
+              <th>IP</th>
+              <th>Status</th>
+              <th>Login</th>
+              <th>Logout</th>
+              <th>Active Time</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for session_row in allsessions %}
+            <tr>
+              <td data-label="#">{{ loop.index }}</td>
+              <td data-label="Session ID"><span class="badge badge-id">{{ session_row['session_id'][:8] }}…</span></td>
+              <td data-label="User / Admin">
+                {% if session_row['admin_name'] %}
+                  <i class="fas fa-user-shield" style="color:#2563eb;"></i>
+                  {{ session_row['admin_name'] }}
+                {% elif session_row['user_name'] %}
+                  <i class="fas fa-user" style="color:#64748b;"></i>
+                  {{ session_row['user_name'] }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td data-label="IP">{{ session_row['IP_address'] }}</td>
+              <td data-label="Status">
+                <span class="status-dot {% if session_row['logged_in'] %}active{% else %}inactive{% endif %}"></span>
+                {% if session_row['logged_in'] %}Active{% else %}Inactive{% endif %}
+              </td>
+              <td data-label="Login">{{ session_row['login_time'] }}</td>
+              <td data-label="Logout">{{ session_row['logout_time'] or '—' }}</td>
+              <td data-label="Active Time">{{ session_row['active_time'] or '—' }}</td>
+              <td data-label="Actions" style="text-align:right;">
+                <div class="actions-cell">
+                  <form action="/forceLogout" method="POST">
+                    {% if session_row['admin_name'] %}
+                      <input type="hidden" name="admin_name" value="{{ session_row['admin_name'] }}">
+                    {% elif session_row['user_name'] %}
+                      <input type="hidden" name="user_id" value="{{ session_row['user_id'] }}">
+                    {% endif %}
+                    <button type="submit" class="btn btn-danger">
+                      <i class="fas fa-power-off"></i> Force Logout
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <i class="fas fa-signal"></i>
+        <p>No sessions to show.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- ============ ENROLLED COURSES SECTION ============ -->
+<section id="enrolledcourse" class="page-section">
+  <div class="section-card">
+    <h2><i class="fas fa-graduation-cap"></i> Enrolled Courses</h2>
+
+    {% if allenrolledcourses %}
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>ID</th>
+              <th>User ID</th>
+              <th>Code</th>
+              <th>Course Name</th>
+              <th>Units</th>
+              <th>Seats</th>
+              <th>Enrolled</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for course in allenrolledcourses %}
+            <tr>
+              <td data-label="#">{{ loop.index }}</td>
+              <td data-label="ID"><span class="badge badge-id">{{ course['id'] }}</span></td>
+              <td data-label="User ID">{{ course['user_id'] }}</td>
+              <td data-label="Code"><span class="badge badge-code">{{ course['course_code'] }}</span></td>
+              <td data-label="Course">{{ course['course_name'] }}</td>
+              <td data-label="Units">{{ course['course_unit'] }}</td>
+              <td data-label="Seats">{{ course['seat_limit'] }}</td>
+              <td data-label="Enrolled">{{ course['enrolled_at'] }}</td>
+              <td data-label="Actions" style="text-align:right;">
+                <div class="actions-cell">
+                  <form method="POST" action="/deleteEnrolledCourse">
+                    <input type="hidden" name="id" value="{{ course['id'] }}">
+                    <button type="submit" class="btn btn-delete">
+                      <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <i class="fas fa-graduation-cap"></i>
+        <p>No enrolled courses to show.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- ============ LOGOUT CONFIRMATION MODAL ============ -->
+<div class="logout-modal-overlay" id="logoutModalOverlay">
+  <div class="logout-modal" role="dialog" aria-modal="true" aria-labelledby="logoutModalTitle">
+    <div class="logout-modal-icon">
+      <i class="fas fa-sign-out-alt"></i>
     </div>
+    <h3 id="logoutModalTitle">Confirm Logout</h3>
+    <p>
+      Are you sure you want to log out of the admin panel?
+      You'll need to sign in again with your password and security PIN.
+    </p>
 
-
-        <!-- Manage Enrolled Courses section -->
-        <div id="enrolledcourse" class="section">
-            <h2>Enrolled Courses</h2>
-            {% if allenrolledcourses %}
-                <h3>All Enrolled Courses</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>SL.No.</th>
-                            <th>ID</th>
-                            <th>User ID</th>
-                            <th>Course Code</th>
-                            <th>Course Name</th>
-                            <th>Course Unit</th>
-                            <th>Seat Limit</th>
-                            <th>Enrolled Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                {% for course in allenrolledcourses %}
-                <tbody>
-                    <!-- Example Row -->
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ course['id'] }}</td>
-                        <td>{{ course['user_id'] }}</td>
-                        <td>{{ course['course_code'] }}</td>
-                        <td>{{ course['course_name'] }}</td>
-                        <td>{{ course['course_unit'] }}</td>
-                        <td>{{ course['seat_limit'] }}</td>
-                        <td>{{ course['enrolled_at'] }}</td>
-                        <td>
-                            <div class="btn-container">
-                              <form method="POST" action="/deleteEnrolledCourse">
-                                <input type="hidden" name="id" value="{{ course['id'] }}">
-                                <button id="delete-btn">Delete</button>
-                              </form>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-                {% endfor %}
-            </table>
-            {% else %}
-                No Enrolled Courses to show.
-            {% endif %}
-        </div>   
+    <div class="logout-modal-actions">
+      <button type="button" class="btn-cancel" id="logoutCancelBtn">
+        <i class="fas fa-times"></i> Cancel
+      </button>
+      <a href="{{ url_for('adminLogout') }}" class="btn-confirm" id="logoutConfirmBtn">
+        <i class="fas fa-sign-out-alt"></i> Yes, Log Out
+      </a>
     </div>
+  </div>
+</div>
 
-    <script>
-        // Function to show the correct section
-        function showSection(sectionId) {
-            let sections = document.querySelectorAll('.section');
-            sections.forEach(section => section.classList.remove('active'));
-            document.getElementById(sectionId).classList.add('active');
-        }
+{% endblock %}
 
-        // To show update course form onclicking update button
-        function openUpdateForm(button) {
-            var row = button.closest('tr'); // Find the closest <tr> to the button clicked
-            var form = row.querySelector('.updateForm'); // Get the form inside that row
-            var editBtn = row.querySelector('.edit-btn'); // Get the edit button in that row
+{% block extra_js %}
+<script>
+  /* ------------------------------------------------------------------
+     Section switching (same behavior as your original showSection)
+     ------------------------------------------------------------------ */
+function goToSection(sectionId) {
+  // Hide all sections
+  document.querySelectorAll('.page-section')
+    .forEach(s => s.classList.remove('active'));
 
-            // Show the form and hide the edit button
-            form.style.display = 'block';
-            editBtn.style.display = 'none';
-        }
+  // Show target section
+  const target = document.getElementById(sectionId);
+  if (target) target.classList.add('active');
 
-        // To show update form onclicking update button
-        // Function to show update user section (specifically for users)
-        function showUpdateUserSection(button) {
-            var row = button.closest('tr'); // Find the closest <tr> to the button clicked
-            var form = row.querySelector('.updateUser'); // Get the form inside that row (for user)
-            var editBtn = row.querySelector('.edit-btn'); // Get the edit button in that row
+  // Update sidebar active state
+  document.querySelectorAll('.admin-sidebar .sidebar-item')
+    .forEach(item => item.classList.remove('active'));
 
-            // Show the form and hide the edit button for user update
-            if (form && editBtn) {
-                form.style.display = 'block';
-                editBtn.style.display = 'none';
-            }
-        }
+  const matchBtn = document.querySelector(
+    `.admin-sidebar button.sidebar-item[data-section="${sectionId}"]`
+  );
+  if (matchBtn) matchBtn.classList.add('active');
 
-    </script>
-</body>
-</html>
+  // Update URL hash (so refresh keeps the section)
+  history.replaceState(null, '', '#' + sectionId);
+
+  // Close mobile sidebar if open
+  const adminSidebar = document.getElementById('adminSidebar');
+  if (adminSidebar && adminSidebar.classList.contains('open')) {
+    adminSidebar.classList.remove('open');
+    document.getElementById('sidebarOverlay')?.classList.remove('active');
+    document.getElementById('sidebarToggle')?.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+
+/* On page load, restore the section from URL hash (if any) */
+document.addEventListener('DOMContentLoaded', function () {
+  const hash = window.location.hash.replace('#', '');
+  if (hash && document.getElementById(hash)) {
+    goToSection(hash);
+  }
+});
+
+  /* ------------------------------------------------------------------
+     Toggle inline update forms (for users and courses)
+     ------------------------------------------------------------------ */
+  function toggleUpdate(button, formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+    const isOpen = form.classList.contains('show');
+    form.classList.toggle('show', !isOpen);
+    button.innerHTML = isOpen
+      ? '<i class="fas fa-pen"></i> Update'
+      : '<i class="fas fa-times"></i> Cancel';
+  }
+</script>
+{% endblock %}

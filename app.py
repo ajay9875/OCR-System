@@ -24,6 +24,47 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # Protects against CSRF in cross-
 # Prevent denial-of-service (DoS) attacks by limiting the size of incoming requests
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB limit
 
+# =============================================================
+# Context processor: makes admin-related flags available
+# to EVERY template automatically (base.html, base_loggedin.html,
+# base_admin.html, and any child templates).
+# =============================================================
+@app.context_processor
+def inject_global_flags():
+    """
+    Injects:
+      - is_admin_session : True if a user session is currently
+                           active AND that user is also registered
+                           as an admin.
+      - has_admin_session: True if an admin session is active.
+    This lets the user dashboard show an "Admin Panel" link when
+    the logged-in user is also an admin.
+    """
+    is_admin_session  = False
+    has_admin_session = 'admin_id' in session
+
+    # Only look up when a user session exists
+    user_id = session.get('user_id')
+    if user_id:
+        try:
+            db  = get_admin_db()
+            cur = db.cursor()
+            cur.execute(
+                "SELECT 1 FROM admins WHERE id = ?",
+                (user_id,)
+            )
+            is_admin_session = cur.fetchone() is not None
+            print(f"[CTX] is_admin_session = {is_admin_session}")
+
+        except Exception as e:
+            # Fail silently — don't break any page render
+            print(f"[CONTEXT PROCESSOR] admin check failed: {e}")
+
+    return dict(
+        is_admin_session=is_admin_session,
+        has_admin_session=has_admin_session,
+    )
+
 # Combined list of all courses (original + new)
 COURSE_SEED = [
             # ===== PRIMARY 84 COURSES (EXACTLY AS YOU SPECIFIED) =====
@@ -197,18 +238,12 @@ def insert_courses():
 # ADMIN INITIALIZATION (idempotent — safe to call on every start)
 # =============================================================
 def init_admin():
-    """
-    Create the default admin from env vars if NO admin with that
-    username OR email OR phone already exists in either table.
-    Returns a short status string.
-    """
     admin_name   = os.getenv("ADMIN_NAME")
     admin_email  = os.getenv("ADMIN_EMAIL")
     admin_phone  = os.getenv("ADMIN_PHONE")
     admin_pass   = os.getenv("ADMIN_PASSWORD")
     admin_pin    = os.getenv("SECURITY_PIN")
 
-    # --- Guard: env vars must all be present ---
     if not all([admin_name, admin_email, admin_phone, admin_pass, admin_pin]):
         print("[INIT_ADMIN] Skipped — one or more ADMIN_* env vars are missing.")
         return "skipped: missing env vars"
@@ -227,20 +262,24 @@ def init_admin():
                WHERE username = ? OR email = ? OR phone_number = ?""",
             (admin_name, admin_email, admin_phone)
         )
-        if cur.fetchone():
-            print(f"[INIT_ADMIN] Admin '{admin_name}' already exists — skipping.")
-            return "admin already exists"
+        row = cur.fetchone()
 
-        cur.execute(
-            """INSERT INTO admins
-               (username, email, phone_number, password, securityPin, profile_pic)
-               VALUES (?, ?, ?, ?, ?, ?)""",
-            (admin_name, admin_email, admin_phone,
-             hashed_password, hashed_pin, None)
-        )
-        db.commit()
+        if row:
+            admin_id = row[0]
+            print(f"[INIT_ADMIN] Admin '{admin_name}' already exists (id={admin_id}).")
+        else:
+            cur.execute(
+                """INSERT INTO admins
+                   (username, email, phone_number, password, securityPin, profile_pic)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (admin_name, admin_email, admin_phone,
+                 hashed_password, hashed_pin, None)
+            )
+            db.commit()
+            admin_id = cur.lastrowid
+            print(f"[INIT_ADMIN] Created admin '{admin_name}' (id={admin_id}).")
 
-        # ---------- USERS TABLE (mirror for login) ----------
+        # ---------- USERS TABLE (same ID!) ----------
         db1  = get_db()
         cur1 = db1.cursor()
 
@@ -249,17 +288,20 @@ def init_admin():
                WHERE username = ? OR email = ? OR phone_number = ?""",
             (admin_name, admin_email, admin_phone)
         )
-        if not cur1.fetchone():
+        user_row = cur1.fetchone()
+
+        if not user_row:
+            # 👇 Insert with an EXPLICIT user_id equal to admin_id
             cur1.execute(
                 """INSERT INTO users
-                   (username, email, phone_number, created_at, password)
-                   VALUES (?, ?, ?, ?, ?)""",
-                (admin_name, admin_email, admin_phone, now, hashed_password)
+                   (user_id, username, email, phone_number, created_at, password)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (admin_id, admin_name, admin_email, admin_phone, now, hashed_password)
             )
             db1.commit()
+            print(f"[INIT_ADMIN] Mirrored admin into users with user_id={admin_id}.")
 
-        print(f"[INIT_ADMIN] Created admin '{admin_name}'.")
-        return "admin created"
+        return "admin ready"
 
     except Exception as e:
         print(f"[INIT_ADMIN] Failed: {e}")
@@ -554,6 +596,29 @@ def adminDashboard():
     response.headers['Expires'] = '0'
     
     return response
+
+@app.route('/switch_to_admin')
+def switch_to_admin():
+    """Allow a logged-in user who is also an admin to switch to admin view."""
+    user_id = session.get('user_id')
+    if not user_id:
+        flash('Please log in first.', 'warning')
+        return redirect(url_for('login'))
+
+    # Look up admin record with the same ID
+    db  = get_admin_db()
+    cur = db.cursor()
+    cur.execute("SELECT id, username FROM admins WHERE id = ?", (user_id,))
+    row = cur.fetchone()
+    if not row:
+        flash('You do not have admin access.', 'error')
+        return redirect(url_for('home'))
+
+    # Set admin session vars
+    session['admin_id']   = row[0]
+    session['admin_name'] = row[1]
+    flash(f'Switched to admin view, {row[1]}!', 'success')
+    return redirect(url_for('adminDashboard'))
 
 # Login route for admin
 # Login route for admin
@@ -1297,11 +1362,15 @@ def login():
 # =============================================================
 @app.route('/dashboard', methods=['GET', 'POST'])
 def home():
-    """ Dashboard with user login check and course recommendations """
-
-    if 'user_id' not in session:
+    # Allow access if EITHER a user session OR an admin session exists
+    if 'user_id' not in session and 'admin_id' not in session:
         flash('Please log in first.', 'warning')
         return redirect(url_for('login'))
+
+    # If only admin_id is set (edge case), mirror it into user_id
+    if 'user_id' not in session and 'admin_id' in session:
+        session['user_id']  = session['admin_id']
+        session['username'] = session.get('admin_name', 'Admin')
 
     username = session.get("username")
 

@@ -30,7 +30,17 @@
       display: flex;
       flex-direction: column;
     }
-
+.dropdown-item.dropdown-item--admin {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e;
+  font-weight: 700;
+}
+.dropdown-item.dropdown-item--admin i { color: #92400e; }
+.dropdown-item.dropdown-item--admin:hover {
+  background: linear-gradient(135deg, #fde68a, #fcd34d);
+  color: #78350f;
+}
+.dropdown-item.dropdown-item--admin:hover i { color: #78350f; }
     /* ============================================================
        TOP NAVBAR (for logged-in users)
        ============================================================ */
@@ -586,25 +596,34 @@
     {% set _username = session.get('username') %}
     {% set _pic = session.get('profile_pic') %}
     <div class="profile-wrap" id="profileWrap">
-    <button class="profile-trigger" id="profileTrigger" aria-label="Profile menu">
+      <button class="profile-trigger" id="profileTrigger" aria-label="Profile menu">
         {% if _pic %}
-        <img class="profile-avatar"
-            src="{{ url_for('static', filename='uploads/' + _pic) }}"
-            alt="{{ _username or 'User' }}">
+          <img class="profile-avatar"
+              src="{{ url_for('static', filename='uploads/' + _pic) }}"
+              alt="{{ _username or 'User' }}">
         {% else %}
-        <img class="profile-avatar"
-            src="{{ url_for('static', filename='default_profile.png') }}"
-            alt="{{ _username or 'User' }}">
+          <img class="profile-avatar"
+              src="{{ url_for('static', filename='pic/default_profile.png') }}"
+              alt="{{ _username or 'User' }}"
+              onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><circle cx=%22100%22 cy=%22100%22 r=%22100%22 fill=%22%23cbd5e1%22/><circle cx=%22100%22 cy=%2275%22 r=%2235%22 fill=%22%23ffffff%22/><path d=%22M40 170 Q100 110 160 170 Z%22 fill=%22%23ffffff%22/></svg>'">
         {% endif %}
         <span class="profile-name">{{ _username or 'User' }}</span>
         <i class="fas fa-chevron-down profile-chevron"></i>
-    </button>
+      </button>
 
     <div class="profile-dropdown">
         <div class="dropdown-header">
         <h4>{{ _username or 'User' }}</h4>
         <p>Signed in</p>
         </div>
+
+        {# 👇 NEW: Admin Panel link — only shown if this user is also an admin #}
+        {% if is_admin_session %}
+          <a href="{{ url_for('switch_to_admin') }}" class="dropdown-item dropdown-item--admin">
+            <i class="fas fa-shield-halved"></i> Admin Panel
+          </a>
+          <div class="dropdown-divider"></div>
+        {% endif %}
         <a href="{{ url_for('yourInfo') }}" class="dropdown-item">
         <i class="fas fa-user-circle"></i> Your Information
         </a>
