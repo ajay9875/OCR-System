@@ -24,14 +24,8 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # Protects against CSRF in cross-
 # Prevent denial-of-service (DoS) attacks by limiting the size of incoming requests
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB limit
 
-@app.route('/insert_courses')
-def insert_courses():
-    with app.app_context():
-        db = get_allcourses_db()
-        cursor = db.cursor()
-        
-        # Combined list of all courses (original + new)
-        courses = [
+# Combined list of all courses (original + new)
+COURSE_SEED = [
             # ===== PRIMARY 84 COURSES (EXACTLY AS YOU SPECIFIED) =====
             ("PCC-PRI001", "HTML and CSS Fundamentals", 12, 30),
             ("PCC-PRI002", "JavaScript Programming", 14, 30),
@@ -164,85 +158,112 @@ def insert_courses():
             ("PCC-ADD043", "Image Processing", 18, 20),
             ("PCC-ADD044", "Audio Processing", 14, 25)
         ]
-        
-        try:
-            cursor.execute("SELECT COUNT(*) AS total_courses FROM allcourses")
-            result = cursor.fetchone()
-            if result[0] >= 100:
-                return f"{result[0]} courses already exists!"
 
-            # Insert all courses in a single transaction
-            cursor.executemany("""
-                INSERT OR IGNORE INTO allcourses 
-                (course_code, course_name, course_unit, seat_limit) 
-                VALUES (?, ?, ?, ?)
-            """, courses)
-            
-            db.commit()
-            print(f"Successfully inserted {cursor.rowcount} courses.")
-            return f"Successfully inserted {cursor.rowcount} courses."
-        
-        except Exception as e:
-            db.rollback()
-            print(f"Error inserting courses: {str(e)}")
-            return "Courses could not insert!"
-        finally:
-            cursor.close()
-
-# For development only
-@app.route('/init_admin')
-def init_admin():
+def seed_courses():
+    """
+    Populate the allcourses table ONLY if it is currently empty.
+    Safe to call on every server start.
+    """
     try:
-        admin_name = os.getenv("ADMIN_NAME")
-        admin_email = os.getenv("ADMIN_EMAIL")
-        admin_phone = os.getenv("ADMIN_PHONE")
-        # Hash the password and the security pin using the default PBKDF2 method
-        hashed_password = generate_password_hash(os.getenv("ADMIN_PASSWORD"))  # Uses PBKDF2 by default
-        hashed_security_pin = generate_password_hash(os.getenv("SECURITY_PIN"))  # Uses PBKDF2 by default
+        db  = get_allcourses_db()
+        cur = db.cursor()
 
-        # Open database connection to admins database
-        db = get_admin_db()
-        cursor = db.cursor()
+        cur.execute("SELECT COUNT(*) FROM allcourses")
+        count = cur.fetchone()[0]
 
-        # Check if the admin user already exists in the admins table
-        cursor.execute("SELECT COUNT(*) FROM admins WHERE username = ?", (admin_name,))
-        result = cursor.fetchone()
+        if count > 0:
+            print(f"[SEED_COURSES] {count} courses already present — skipping.")
+            return f"{count} courses already present"
 
-        if result[0] >= 1:
-            return f"Admin user '{admin_name}' already exists in admins table!"
+        cur.executemany(
+            """INSERT OR IGNORE INTO allcourses
+               (course_code, course_name, course_unit, seat_limit)
+               VALUES (?, ?, ?, ?)""",
+            COURSE_SEED
+        )
+        db.commit()
+        print(f"[SEED_COURSES] Inserted {cur.rowcount} courses.")
+        return f"inserted {cur.rowcount} courses"
 
-        # Insert admin into the admins table
-        cursor.execute(''' 
-            INSERT INTO admins (username, email, phone_number, password, securityPin, profile_pic)
-            VALUES (?, ?, ?, ?, ?, ?)''',
-            (admin_name, admin_email, admin_phone, hashed_password, hashed_security_pin, None)
+    except Exception as e:
+        print(f"[SEED_COURSES] Failed: {e}")
+        return f"error: {e}"
+
+@app.route('/insert_courses')
+def insert_courses():
+    return seed_courses()
+
+# =============================================================
+# ADMIN INITIALIZATION (idempotent — safe to call on every start)
+# =============================================================
+def init_admin():
+    """
+    Create the default admin from env vars if NO admin with that
+    username OR email OR phone already exists in either table.
+    Returns a short status string.
+    """
+    admin_name   = os.getenv("ADMIN_NAME")
+    admin_email  = os.getenv("ADMIN_EMAIL")
+    admin_phone  = os.getenv("ADMIN_PHONE")
+    admin_pass   = os.getenv("ADMIN_PASSWORD")
+    admin_pin    = os.getenv("SECURITY_PIN")
+
+    # --- Guard: env vars must all be present ---
+    if not all([admin_name, admin_email, admin_phone, admin_pass, admin_pin]):
+        print("[INIT_ADMIN] Skipped — one or more ADMIN_* env vars are missing.")
+        return "skipped: missing env vars"
+
+    hashed_password = generate_password_hash(admin_pass)
+    hashed_pin      = generate_password_hash(admin_pin)
+    now             = datetime.now()
+
+    try:
+        # ---------- ADMINS TABLE ----------
+        db  = get_admin_db()
+        cur = db.cursor()
+
+        cur.execute(
+            """SELECT id FROM admins
+               WHERE username = ? OR email = ? OR phone_number = ?""",
+            (admin_name, admin_email, admin_phone)
+        )
+        if cur.fetchone():
+            print(f"[INIT_ADMIN] Admin '{admin_name}' already exists — skipping.")
+            return "admin already exists"
+
+        cur.execute(
+            """INSERT INTO admins
+               (username, email, phone_number, password, securityPin, profile_pic)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (admin_name, admin_email, admin_phone,
+             hashed_password, hashed_pin, None)
         )
         db.commit()
 
-        # Handle users table separately
-        db1 = get_db()  # User database connection
-        cursor1 = db1.cursor()
+        # ---------- USERS TABLE (mirror for login) ----------
+        db1  = get_db()
+        cur1 = db1.cursor()
 
-        # Check if the admin user already exists in the users table
-        cursor1.execute("SELECT COUNT(*) FROM users WHERE username = ?", (admin_name,))
-        result1 = cursor1.fetchone()
+        cur1.execute(
+            """SELECT user_id FROM users
+               WHERE username = ? OR email = ? OR phone_number = ?""",
+            (admin_name, admin_email, admin_phone)
+        )
+        if not cur1.fetchone():
+            cur1.execute(
+                """INSERT INTO users
+                   (username, email, phone_number, created_at, password)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (admin_name, admin_email, admin_phone, now, hashed_password)
+            )
+            db1.commit()
 
-        if result1[0] >= 1:
-            return f"User '{admin_name}' already exists in users table!"
-
-        # Insert into the users table as well (for login purposes)
-        now = datetime.now()
-        cursor1.execute('''
-            INSERT INTO users (username, email, phone_number, created_at, password)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (admin_name, admin_email, admin_phone, now, hashed_password))
-        db1.commit()
-
-        print("Admin user created and inserted into both admins and users tables.")
-        return "Admin user created and inserted into both admins and users tables."
+        print(f"[INIT_ADMIN] Created admin '{admin_name}'.")
+        return "admin created"
 
     except Exception as e:
-        return f"Admin user could not be created! Error: {str(e)}"
+        print(f"[INIT_ADMIN] Failed: {e}")
+        return f"error: {e}"
     
 @app.before_request
 def validate_admin_session():
@@ -342,19 +363,6 @@ def get_sessions_db():
         g.sessions_db.row_factory = sqlite3.Row
     return g.sessions_db
 
-from flask import g
-
-@app.teardown_appcontext
-def close_db(error=None):
-    """Closes all database connections at the end of the request."""
-    dbs = [get_db, get_reserved_courses_db, get_admin_db, get_allcourses_db, get_sessions_db]
-    
-    for get_db_func in dbs:
-        # Access the database connection using the name of the function
-        db_name = get_db_func.__name__.replace('get_', '').replace('_db', '')  # Get the db name part
-        db = getattr(g, db_name + '_db', None)  # Get the db connection from g
-        if db is not None:
-            db.close()
 
 # Functions to create the databases (tables) if they don't exist
 
@@ -458,12 +466,16 @@ create_sessions_database()
 
 # Close connections properly
 @app.teardown_appcontext
-def close_connection(exception=None):
-    """Closes database connections at the end of each request."""
-    for db_name in ['admins_db', 'users_db', 'allcourses_db', 'enrollments_db', 'sessions_db']:
-        db = getattr(g, db_name, None)
+def close_db(error=None):
+    """Closes all database connections at the end of the request."""
+    for attr in ('users_db', 'reservedcourses_db', 'admin_db',
+                 'courses_db', 'sessions_db'):
+        db = getattr(g, attr, None)
         if db is not None:
-            db.close()
+            try:
+                db.close()
+            except Exception:
+                pass
 
 def execute_with_retry(db, query, params=(), retries=3, delay=0.1):
     for attempt in range(retries):
@@ -1863,6 +1875,32 @@ def remove_course():
     flash('Selected course removed successfully!','success')
     
     return render_template('reservedCourses.html', allenrolledcourses=allenrolledcourses)
+
+# =============================================================
+# BOOTSTRAP (call once at startup — idempotent)
+# =============================================================
+def bootstrap_app():
+    """
+    Safe to run on every deployment / restart.
+    - Creates tables (already done at import time)
+    - Seeds courses if empty
+    - Creates the default admin if missing
+    """
+    print("=" * 60)
+    print("[BOOTSTRAP] Starting application initialization...")
+
+    result_courses = seed_courses()
+    result_admin   = init_admin()
+
+    print(f"[BOOTSTRAP] Courses : {result_courses}")
+    print(f"[BOOTSTRAP] Admin   : {result_admin}")
+    print("[BOOTSTRAP] Done.")
+    print("=" * 60)
+
+
+# Run once at import — this is what PythonAnywhere actually executes
+with app.app_context():
+    bootstrap_app()
 
 #----------  To Run the server  -----------
 if __name__ == "__main__":
