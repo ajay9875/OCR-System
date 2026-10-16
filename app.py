@@ -1192,17 +1192,42 @@ def get_ip_address():
     if 'X-Forwarded-For' in request.headers:
         user_ip = request.headers['X-Forwarded-For'].split(',')[0]
     return user_ip
-# Handle login credentials
+
+# =============================================================
+# PUBLIC LANDING PAGE
+# =============================================================
+@app.route('/', methods=["GET"])
+def landing():
+    # If user is already logged in, optionally redirect to dashboard
+    if 'user_id' in session:
+        return redirect(url_for('home'))
+    return render_template('landing.html')
+
+
+# =============================================================
+# LOGIN (accepts username OR email)
+# =============================================================
 @app.route('/login', methods=["POST", "GET"])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        # Step 1: Validate credentials
+        # Accept either username or email from the same field
+        username_or_email = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+
+        # Basic guard against empty input
+        if not username_or_email or not password:
+            flash('Please enter both username/email and password.', 'error')
+            return render_template('login.html')
+
+        # Step 1: Look up by username OR email
         db = get_db()
         cursor = db.cursor()
-        cursor.execute("SELECT user_id, username, password FROM users WHERE username = ?", (username,))
+        cursor.execute(
+            """SELECT user_id, username, password, profile_pic
+               FROM users
+               WHERE username = ? OR email = ?""",
+            (username_or_email, username_or_email)
+        )
         user = cursor.fetchone()
 
         if user and check_password_hash(user[2], password):
@@ -1211,41 +1236,102 @@ def login():
             session_id = str(uuid.uuid4())
             user_ip = get_ip_address()
 
-            session['user_id'] = user[0]
-            session['username'] = user[1]
-            session['session_id'] = session_id
-            session['ip_address'] = user_ip
+            session['user_id']      = user[0]
+            session['username']     = user[1]
+            session['session_id']   = session_id
+            session['ip_address']   = user_ip
+            session['profile_pic']  = user[3] if user[3] else None
 
             login_time = datetime.now()
-            logged_in = True
+            logged_in  = True
 
-            # Step 3: Insert or update session info
+            # Step 3: Insert or update session info (uses the REAL username, not the login input)
             db1 = get_sessions_db()
             cursor = db1.cursor()
 
-            cursor.execute("SELECT user_name FROM sessions WHERE user_name = ?", (username,))
+            cursor.execute(
+                "SELECT user_name FROM sessions WHERE user_name = ?",
+                (user[1],)  # 👈 use the actual username from DB, not what the user typed
+            )
             existing = cursor.fetchone()
 
             if existing:
                 cursor.execute(
                     "UPDATE sessions SET IP_address = ?, logged_in = ?, login_time = ? WHERE user_name = ?",
-                    (user_ip, logged_in, login_time, username)
+                    (user_ip, logged_in, login_time, user[1])
                 )
             else:
                 cursor.execute(
                     '''INSERT INTO sessions (session_id, user_id, IP_address, user_name, logged_in, login_time)
-                        VALUES (?, ?, ?, ?, ?, ?)''',
-                    (session_id, user[0], user_ip, username, logged_in, login_time)
+                       VALUES (?, ?, ?, ?, ?, ?)''',
+                    (session_id, user[0], user_ip, user[1], logged_in, login_time)
                 )
 
             db1.commit()
 
             flash('Logged in successfully!', 'success')
             return redirect(url_for('home'))
+
         else:
-            flash('Invalid Credentials!', 'error')
-    
-    return render_template('dashboard.html')  # Make sure this is your login template
+            flash('Invalid credentials. Please check your username/email and password.', 'error')
+            return render_template('login.html')
+
+    # GET request → show login page
+    return render_template('login.html')
+
+
+# =============================================================
+# DASHBOARD (logged-in users only)
+# =============================================================
+@app.route('/dashboard', methods=['GET', 'POST'])
+def home():
+    """ Dashboard with user login check and course recommendations """
+
+    if 'user_id' not in session:
+        flash('Please log in first.', 'warning')
+        return redirect(url_for('login'))
+
+    username = session.get("username")
+
+    # Fetch the user's profile picture
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT profile_pic FROM users WHERE username=?", (username,))
+    user = cursor.fetchone()
+
+    sidebar_links = {
+        "about":    url_for("about"),
+        "services": url_for("services"),
+        "contact":  url_for("contact")
+    }
+
+    recommended_courses = None
+    allcourses = None
+
+    if request.method == "POST":
+        selected_course = request.form.get('course')
+        if selected_course:
+            recommended_courses = recommend_courses(selected_course)
+
+            if not recommended_courses:
+                flash("Stay tuned! We're finding the best courses for you. Please try again shortly!", "success")
+                return redirect(url_for('home'))
+            else:
+                allcourses = fetch_courses_by_names(recommended_courses)
+
+    response = make_response(render_template(
+        "index.html",
+        username=username,
+        sidebar_links=sidebar_links,
+        allcourses=allcourses,
+        user=user
+    ))
+
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, proxy-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+
+    return response
 
 #Route for checking the details related to forget password
 @app.route('/forgetpass', methods=['GET', 'POST'])
@@ -1458,58 +1544,6 @@ def fetch_courses_by_names(recommended_courses):
         app.logger.error(f"Unexpected error in fetch_courses_by_names: {e}")
         return []
 
-# Route for the home page
-@app.route('/', methods=['GET', 'POST'])
-def home():
-    """ Home page with user login check and course recommendations """
-
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    username = session.get("username")
-
-    # Fetch the user's profile picture from the database
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("SELECT profile_pic FROM users WHERE username=?", (username,))
-    user = cursor.fetchone()
-    
-    sidebar_links = {
-        "about": url_for("about"),
-        "services": url_for("services"),
-        "contact": url_for("contact")
-    }
-
-    recommended_courses = None
-    allcourses = None
-
-    if request.method == "POST":
-        selected_course = request.form.get('course')
-        if selected_course:
-            # Fetch recommendations based on the selected course
-            recommended_courses = recommend_courses(selected_course)
-
-            if not recommended_courses:
-                flash("Stay tuned! We're finding the best courses for you. Please try again shortly!", "success")
-                return redirect(url_for('home'))
-            else:
-                allcourses = fetch_courses_by_names(recommended_courses)  # You already use this function
-
-    response = make_response(render_template(
-        "index.html",
-        username=username,
-        sidebar_links=sidebar_links,
-        allcourses=allcourses,
-        user=user
-    ))
-
-    # Prevent caching of the home page
-    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, proxy-revalidate'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '0'
-
-    return response
-
 #------- All route to show options of toggle button after login or at dashboard as well -------
 # Individual routes for "about", "services", and "contact"
 # Route for aboute us page
@@ -1582,6 +1616,9 @@ if not os.path.exists(UPLOAD_FOLDER):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+from PIL import Image, ImageOps   # 👈 ADD THIS at the top of your file
+import time                        # (or you already have it, since you use it elsewhere)
+
 # Route for Post method on uploaded image to store the image name in user database
 @app.route("/update_profile_pic", methods=["POST"])
 def update_profile_pic():
@@ -1602,15 +1639,49 @@ def update_profile_pic():
         return redirect(url_for("settings"))
 
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)  # Secure file name
+        # ----- 1. Generate a UNIQUE filename (cache-busting) -----
+        original_name = secure_filename(file.filename)
+        name, ext = os.path.splitext(original_name)
+        filename = f"{name}_{int(time.time())}{ext}"   # e.g. photo_1730123456.jpg
+
         filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        file.save(filepath)  # Save the file to the upload folder
-        
-        # Store the file path in the database
+        file.save(filepath)
+
+        # ----- 2. Process the image (square crop + resize to 800×800) -----
+        try:
+            img = Image.open(filepath)
+            img = ImageOps.exif_transpose(img)   # fix rotated phone photos
+            img = img.convert("RGB")
+
+            # Center-crop to a perfect square
+            w, h = img.size
+            side = min(w, h)
+            left = (w - side) // 2
+            top  = (h - side) // 2
+            img  = img.crop((left, top, left + side, top + side))
+
+            # Resize to 800×800 (high quality for Retina displays)
+            img = img.resize((800, 800), Image.LANCZOS)
+
+            # Save with good quality (JPEG ~80–120 KB, sharp)
+            img.save(filepath, quality=92, optimize=True)
+
+        except Exception as e:
+            # If processing fails, we still have the original saved — continue gracefully
+            print(f"[PROFILE PIC] Image processing failed: {e}")
+
+        # ----- 3. Update the database -----
         db = get_db()
         cursor = db.cursor()
-        cursor.execute("UPDATE users SET profile_pic=? WHERE username=?", (filename, username))
+        cursor.execute(
+            "UPDATE users SET profile_pic=? WHERE username=?",
+            (filename, username)
+        )
         db.commit()
+
+        # ----- 4. Refresh the session so the header updates instantly -----
+        session["profile_pic"] = filename
+
         flash("Profile picture updated successfully!", "success")
         return redirect(url_for("home"))
 

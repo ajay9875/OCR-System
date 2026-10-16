@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}AI Course Recommendation{% endblock %}</title>
+
+  <link rel="icon" type="image/png"
+        href="{{ url_for('static', filename='pic/logo.png') }}" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+  <!-- Font Awesome 6 (stable, full icon set) -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f9fafc;
+      color: #1e293b;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---------- PROFESSIONAL NAVBAR ---------- */
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 5%;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #e9eef3;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #2563eb, #1e40af);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.6rem;
+      box-shadow: 0 6px 12px rgba(37, 99, 235, 0.2);
+    }
+
+    .logo-text {
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+      color: #0b1e3a;
+    }
+
+    .logo-text span { color: #2563eb; }
+
+    /* ---------- NAV LINKS ---------- */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.8rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.98rem;
+      color: #334155;
+      transition: color 0.2s;
+      position: relative;
+      padding-bottom: 4px;
+    }
+
+    .nav-links a:hover { color: #2563eb; }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -2px; left: 0;
+      width: 0; height: 2px;
+      background: #2563eb;
+      transition: width 0.25s;
+    }
+
+    .nav-links a:hover::after { width: 100%; }
+
+    /* ---------- ACTIVE LINK ---------- */
+    .nav-links a.active {
+      color: #2563eb;
+    }
+
+    .nav-links a.active::after {
+      width: 100%;
+    }
+
+    /* ---------- LOGIN BUTTON ---------- */
+    .btn-login {
+      background: #2563eb;
+      color: #fff !important;
+      padding: 0.55rem 1.2rem;
+      border-radius: 40px;
+      font-weight: 600;
+      box-shadow: 0 8px 16px -6px rgba(37, 99, 235, 0.3);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-login:hover {
+      background: #1d4ed8;
+      box-shadow: 0 10px 20px -8px #1d4ed8;
+    }
+
+    .btn-login::after { display: none; }
+
+    /* ---------- HAMBURGER BUTTON ---------- */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 44px;
+      height: 44px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 10px;
+      transition: background 0.2s;
+      z-index: 1100;
+    }
+
+    .hamburger:hover {
+      background: #f1f5f9;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 26px;
+      height: 3px;
+      background: #0b1e3a;
+      border-radius: 2px;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      transform-origin: center;
+    }
+
+    .hamburger.active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+    .hamburger.active span:nth-child(2) { opacity: 0; }
+    .hamburger.active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+    /* ---------- MOBILE MENU OVERLAY ---------- */
+    .nav-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 30, 58, 0.45);
+      backdrop-filter: blur(2px);
+      z-index: 998;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .nav-overlay.active { display: block; opacity: 1; }
+
+    /* ---------- flash messages ---------- */
+    .flash-container {
+      max-width: 900px;
+      margin: 1rem auto 0;
+      padding: 0 5%;
+    }
+
+    .flash {
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      margin-bottom: 0.6rem;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+    .flash.success { background: #dcfce7; color: #166534; }
+    .flash.error   { background: #fee2e2; color: #991b1b; }
+    .flash.warning { background: #fef3c7; color: #92400e; }
+    .flash.info    { background: #dbeafe; color: #1e40af; }
+
+    /* ---------- footer ---------- */
+    .footer-note {
+      text-align: center;
+      padding: 1.5rem;
+      color: #94a3b8;
+      font-size: 0.9rem;
+      border-top: 1px solid #e9eef3;
+      background: white;
+      margin-top: auto;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 900px) {
+      .nav-links { gap: 1.2rem; }
+      .nav-links a { font-size: 0.9rem; }
+      .btn-login { padding: 0.5rem 1rem; font-size: 0.9rem; }
+    }
+
+    @media (max-width: 768px) {
+      .hamburger { display: flex; }
+
+      .nav-links {
+        position: fixed;
+        top: 0;
+        right: -320px;
+        width: 300px;
+        max-width: 80vw;
+        height: 100vh;
+        background: #ffffff;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 0;
+        padding: 5.5rem 1.8rem 2rem;
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.08);
+        transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 999;
+        overflow-y: auto;
+      }
+
+      .nav-links.active { right: 0; }
+
+      .nav-links li {
+        width: 100%;
+        border-bottom: 1px solid #f1f5f9;
+      }
+
+      .nav-links li:last-child {
+        border-bottom: none;
+        margin-top: 1.2rem;
+      }
+
+      .nav-links a {
+        display: block;
+        width: 100%;
+        padding: 1rem 0.2rem;
+        font-size: 1.05rem;
+        color: #0b1e3a;
+      }
+
+      .nav-links a::after { display: none; }
+
+      .nav-links a:hover {
+        color: #2563eb;
+        padding-left: 0.6rem;
+        transition: padding 0.2s, color 0.2s;
+      }
+
+      /* Active state on mobile drawer */
+      .nav-links a.active {
+        color: #2563eb;
+        font-weight: 700;
+        border-left: 3px solid #2563eb;
+        padding-left: 0.7rem;
+      }
+
+      .btn-login {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 0.9rem 1.2rem;
+        font-size: 1rem;
+        border-radius: 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .logo-text { font-size: 1.15rem; }
+      .logo-icon { width: 38px; height: 38px; font-size: 1.3rem; }
+      .navbar { padding: 0.75rem 5%; }
+    }
+  </style>
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- ============ NAVBAR ============ -->
+  <nav class="navbar">
+    <a href="/" class="logo-area">
+      <div class="logo-icon">
+        <i class="fas fa-robot"></i>
+      </div>
+      <div class="logo-text">AI<span>Course</span></div>
+    </a>
+
+    <button class="hamburger" id="hamburgerBtn" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/"          class="{% if request.path == '/' %}active{% endif %}">Home</a></li>
+      <li><a href="/about"     class="{% if request.path == '/about' %}active{% endif %}">About</a></li>
+      <li><a href="/services"  class="{% if request.path == '/services' %}active{% endif %}">Services</a></li>
+      <li><a href="/contact"   class="{% if request.path == '/contact' %}active{% endif %}">Contact</a></li>
+      <li><a href="/adminLogin" class="{% if request.path == '/adminLogin' %}active{% endif %}">Admin</a></li>
+      <li>
+        <a href="/login" class="btn-login {% if request.path == '/login' %}active{% endif %}">
+          <i class="fas fa-user-circle" style="margin-right: 6px;"></i>Login
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="nav-overlay" id="navOverlay"></div>
+
+  <!-- ============ FLASH MESSAGES ============ -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- ============ PAGE CONTENT ============ -->
+  <main style="flex: 1;">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer-note">
+    <p>© 2025 AI Course Recommendation — Learn smarter, grow faster.</p>
+  </footer>
+
+  <script>
+    (function () {
+      const hamburger = document.getElementById('hamburgerBtn');
+      const navLinks  = document.getElementById('navLinks');
+      const overlay   = document.getElementById('navOverlay');
+
+      function toggleMenu(forceClose = false) {
+        const isOpen = navLinks.classList.contains('active');
+        if (forceClose || isOpen) {
+          navLinks.classList.remove('active');
+          overlay.classList.remove('active');
+          hamburger.classList.remove('active');
+          hamburger.setAttribute('aria-expanded', 'false');
+          document.body.style.overflow = '';
+        } else {
+          navLinks.classList.add('active');
+          overlay.classList.add('active');
+          hamburger.classList.add('active');
+          hamburger.setAttribute('aria-expanded', 'true');
+          document.body.style.overflow = 'hidden';
+        }
+      }
+
+      hamburger.addEventListener('click', () => toggleMenu());
+      overlay.addEventListener('click', () => toggleMenu(true));
+
+      navLinks.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => toggleMenu(true));
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') toggleMenu(true);
+      });
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) toggleMenu(true);
+      });
+    })();
+  </script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

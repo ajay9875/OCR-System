@@ -1,102 +1,175 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='pic/logo.png') }}">
+{% extends "base_loggedin.html" %}
 
-    <title>Profile Information</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        .profile-header {
-            text-align: center;
-            padding: 20px;
-            background-color: #007bff;
-            color: white;
-        }
+{% block title %}Your Information | AI Course Recommendation{% endblock %}
 
-/*--- Home button Style --*/
-.home{
-    height:65px;
-    width:55px;
-    margin: 10px;
+{% block extra_css %}
+<style>
+  .page-header {
+    margin-bottom: 2rem;
   }
-   .home img{
-      height:60px;
-      width:60px;
-      border-radius: 100%;
-   }
+  .page-header h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #0b1e3a;
+    margin-bottom: 0.4rem;
+  }
+  .page-header p {
+    color: #64748b;
+    font-size: 0.98rem;
+  }
 
-   .main-content-class{
-    display:flex;
-   }
-   /*---Profile information style ---*/
-   .profile-info {
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-   .profile-info img{
-            width: 90px;
-            height: 90px;
-            border-radius: 100%;
-            margin-bottom: 10px;
-        }
-        
-        h2 {
-            color: #007bff;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        ul li {
-            padding: 5px 0;
-        }
+  .profile-card {
+    background: #ffffff;
+    border-radius: 24px;
+    border: 1px solid #eef2f6;
+    box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    max-width: 720px;
+  }
 
-        
-        </style>
-</head>
-<body>
-    <!-- Profile Header -->
-    <div class="profile-header">
-        <p>Welcome to your profile page!</p>
-    </div>
-    <!-- Home Button-->
-    <div class="home">
-        <a href="/" class="btn"><img src="{{url_for('static',filename='css/homeicon.png')}}"></a>
-    </div>
-    
-    <!-- Profile Information Section -->
-    <div class="profile-info">
-        <h2>Your Information</h2>
-        {% if details %}
-            {% for detail in details %}
-            <ul>
-              {% if detail.profile_pic %}
-                <img id="profile-image" src="{{ url_for('static', filename='uploads/' + detail.profile_pic) }}" alt="" class="profile-pic">
-              {% else %}
-                <img style="background-color: rgba(160, 160, 160, 0.692);" src="{{ url_for('static', filename='default_profile.png') }}" alt="" class="profile-pic">
-              {% endif %}
+  .profile-banner {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    height: 120px;
+    position: relative;
+  }
 
-                <li><strong>Username:</strong> {{ detail.username }}</li>
-                <li><strong>Email:</strong> {{ detail.email or 'Not provided' }}</li>
-                <li><strong>Phone:</strong> {{ detail.phone_number or 'Not provided' }}</li>
-            </ul>
-            {% endfor %}
+  .profile-body {
+    padding: 0 2rem 2rem;
+    position: relative;
+  }
+
+.profile-avatar-large {
+  width: 110px;                   /* 👈 use px, not % */
+  height: 110px;                  /* 👈 use px, not % */
+  border-radius: 50%;
+  object-fit: cover;              /* 👈 REQUIRED */
+  object-position: center center;
+  border: 4px solid #ffffff;
+  box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.2);
+  background: #cbd5e1;
+  margin-top: -55px;
+  margin-bottom: 1rem;
+  display: block;
+  flex-shrink: 0;
+}
+  .profile-name-block h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #0b1e3a;
+    letter-spacing: -0.02em;
+  }
+  .profile-name-block p {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .info-item {
+    background: #f8fafc;
+    border: 1px solid #eef2f6;
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .info-item .icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+    display: flex; align-items: center; justify-content: center;
+    color: #2563eb;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
+  .info-item .label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #94a3b8;
+    margin-bottom: 2px;
+  }
+  .info-item .value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #0b1e3a;
+    word-break: break-word;
+  }
+
+  @media (max-width: 600px) {
+    .profile-body { padding: 0 1.3rem 1.5rem; }
+    .profile-avatar-large { width: 90px; height: 90px; margin-top: -45px; }
+    .profile-banner { height: 100px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1>Your Information</h1>
+  <p>Manage your personal details and account information.</p>
+</div>
+
+<div class="profile-card">
+  <div class="profile-banner"></div>
+  <div class="profile-body">
+
+    {% if details %}
+      {% for detail in details %}
+        {% if detail['profile_pic'] %}
+          <img class="profile-avatar-large"
+               src="{{ url_for('static', filename='uploads/' + detail['profile_pic']) }}"
+               alt="Profile picture">
+        {% else %}
+          <img class="profile-avatar-large"
+               src="{{ url_for('static', filename='default_profile.png') }}"
+               alt="Default profile picture">
         {% endif %}
-        
-    </div>
 
-</body>
-</html>
+        <div class="profile-name-block">
+          <h2>{{ detail['username'] }}</h2>
+          <p>Member of AI Course Recommendation</p>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="icon"><i class="fas fa-user"></i></div>
+            <div>
+              <div class="label">Username</div>
+              <div class="value">{{ detail['username'] }}</div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="icon"><i class="fas fa-envelope"></i></div>
+            <div>
+              <div class="label">Email</div>
+              <div class="value">{{ detail['email'] or 'Not provided' }}</div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="icon"><i class="fas fa-phone"></i></div>
+            <div>
+              <div class="label">Phone</div>
+              <div class="value">{{ detail['phone_number'] or 'Not provided' }}</div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p style="padding: 2rem 0; color: #64748b;">No information available.</p>
+    {% endif %}
+
+  </div>
+</div>
+
+{% endblock %}

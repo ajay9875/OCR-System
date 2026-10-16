@@ -1,128 +1,263 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='pic/logo.png') }}">
+{% extends "base.html" %}
 
-    <title>User Registration Page</title>
+{% block title %}Sign Up | AI Course Recommendation{% endblock %}
 
+{% block extra_css %}
 <style>
-h3{
-  color:deeppink;
-}
+  .auth-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem 5%;
+    min-height: calc(100vh - 200px);
+    background:
+      radial-gradient(circle at 15% 20%, rgba(37, 99, 235, 0.06), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(124, 58, 237, 0.06), transparent 45%);
+  }
 
-/*signup form style*/
-.signup-page{
-  height: fit-content;
-  justify-self: center;
-  width: 320px;
-  padding: 0 25px 10px 25px;
-  border-radius: 10px;
-  border:solid 2px rgb(199, 197, 197);
-  background-color: rgb(247, 250, 247);
-}
-/*Sign up icon*/
-img{
-  width:75px;
-  height:75px;
-  border: groove 1px black;
-}
-.signup-icon{
-  text-align: center;
-}
-/* Style for the labels and inputs */
-label {
-    display: block; /* Ensure labels take up a full line */
-    margin-bottom: 5px; /* Space between label and input */
-    font-weight: bold; /* Optional: make labels bold */
-}
-
-input {
-    display: block; /* Ensure inputs take up a full line */
-    width: 300px; /* Ensure inputs take the full width of the container */
-    padding: 5px; /* Add padding to input */
-    margin-bottom: 15px; /* Space between inputs */
-    border:groove 2px black;
-    border-radius: 5px;
-}
-
-/* Optional styling for error messages */
-.error label {
-    color: red; /* Error message label color */
-}
-
-/* Optional: Button styling */
-.button {
-    display: block; /* Button on its own line */
-    margin-top: 20px; /* Space above the button */
-    padding: 10px 20px; /* Button padding */
-    background-color: #007bff; /* Button color */
-    color: white; /* Button text color */
-    border: none; /* Remove border */
-    border-radius: 5px; /* Button rounded corners */
-    cursor: pointer; /* Pointer cursor on hover */
+  .auth-card {
     width: 100%;
-}
+    max-width: 480px;
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
+    border: 1px solid #eef2f6;
+  }
 
-.button:hover {
-    background-color: #0056b3; /* Darker button color on hover */
-}
+  .auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
 
+  .auth-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    box-shadow: 0 10px 20px -8px rgba(37, 99, 235, 0.5);
+  }
+  .auth-icon i {
+    font-size: 1.6rem;
+    color: #ffffff;
+  }
+
+  .auth-header h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #0b1e3a;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.35rem;
+  }
+  .auth-header p {
+    color: #64748b;
+    font-size: 0.95rem;
+  }
+
+  .error-msg {
+    display: block;
+    padding: 0.75rem 1rem;
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 1.2rem;
+    text-align: center;
+  }
+  .error-msg:empty { display: none; }
+
+  .form-group {
+    margin-bottom: 1.1rem;
+  }
+  .form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #334155;
+    margin-bottom: 0.4rem;
+  }
+
+  .input-wrap { position: relative; }
+  .input-wrap i {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 0.95rem;
+    pointer-events: none;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 0.8rem 1rem 0.8rem 2.6rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 0.98rem;
+    font-family: inherit;
+    color: #1e293b;
+    background: #f8fafc;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .form-control:focus {
+    border-color: #2563eb;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 0.9rem;
+    border: none;
+    border-radius: 12px;
+    background: #2563eb;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    font-family: inherit;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 10px 20px -8px rgba(37, 99, 235, 0.5);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 0.5rem;
+  }
+  .btn-submit:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 22px -8px #1d4ed8;
+  }
+  .btn-submit:active { transform: translateY(0); }
+
+  .auth-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: #64748b;
+    line-height: 1.7;
+  }
+  .auth-footer a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .auth-footer a:hover { text-decoration: underline; }
+  .auth-footer .divider {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 0.8rem 0;
+    color: #cbd5e1;
+    font-size: 0.8rem;
+  }
+  .auth-footer .divider::before,
+  .auth-footer .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+  }
+
+  @media (max-width: 480px) {
+    .auth-card { padding: 2rem 1.5rem; border-radius: 20px; }
+    .auth-header h2 { font-size: 1.35rem; }
+  }
 </style>
+{% endblock %}
 
-</head>
-<body> 
-  <div class="signup-page">
-        <form method="POST" action="/register">
-         <div class="signup-icon">
-            <h3>SignUp Now</h3>
-            <!-- Login icon -->
-           <img src="static\css\signupicon.png">
-         </div> 
-      <div class="error">
-          <!-- Error Message -->
-          <label id="error">{{ error_message }}</label>
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <div class="auth-header">
+      <div class="auth-icon">
+        <i class="fas fa-user-plus"></i>
       </div>
-      
-      <div class="username-input">
-          <label for="username">Enter Username</label>
-          <input type="text" class="form-control" id="username" onclick="hideError_message()" name="username" required>
+      <h2>Create your account</h2>
+      <p>Start your personalized learning journey today.</p>
+    </div>
+
+    {% if error_message %}
+      <span class="error-msg">{{ error_message }}</span>
+    {% endif %}
+
+    <form method="POST" action="/register">
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <div class="input-wrap">
+          <i class="fas fa-user"></i>
+          <input type="text" class="form-control" id="username" name="username"
+                 placeholder="Choose a username"
+                 onclick="hideErrorMessage()" required autocomplete="username">
+        </div>
       </div>
-      
-      <div class="pnone-number-input">
-          <label for="phonenumber" class="form-label">Enter Phone Number</label>
-          <input type="number" class="form-control" id="phonenumber" name="phone_number" required>
+
+      <div class="form-group">
+        <label for="phonenumber">Phone Number</label>
+        <div class="input-wrap">
+          <i class="fas fa-phone"></i>
+          <input type="tel" class="form-control" id="phonenumber" name="phone_number"
+                 placeholder="Enter your phone number"
+                 pattern="[0-9]{10,15}" required autocomplete="tel">
+        </div>
       </div>
-      
-      <div class="email-input">
-          <label for="email" class="form-label">Enter Email Address</label>
-          <input type="email" class="form-control" id="email" name="email" required>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <div class="input-wrap">
+          <i class="fas fa-envelope"></i>
+          <input type="email" class="form-control" id="email" name="email"
+                 placeholder="you@example.com" required autocomplete="email">
+        </div>
       </div>
-      
-      <div class="newpass">
-          <label for="password" class="form-label">Create Password</label>
-          <input type="password" class="form-control" id="newpassword" name="newpassword" required>
+
+      <div class="form-group">
+        <label for="newpassword">Create Password</label>
+        <div class="input-wrap">
+          <i class="fas fa-lock"></i>
+          <input type="password" class="form-control" id="newpassword" name="newpassword"
+                 placeholder="Minimum 8 characters" minlength="8" required autocomplete="new-password">
+        </div>
       </div>
-      
-      <div class="cpass">
-          <label for="confirmpassword" class="form-label">Re-enter Password</label>
-          <input type="password" class="form-control" id="confirmpassword" name="confirmpassword" required>
+
+      <div class="form-group">
+        <label for="confirmpassword">Confirm Password</label>
+        <div class="input-wrap">
+          <i class="fas fa-lock"></i>
+          <input type="password" class="form-control" id="confirmpassword" name="confirmpassword"
+                 placeholder="Re-enter your password" minlength="8" required autocomplete="new-password">
+        </div>
       </div>
-      
-      <div class="btn">
-          <button class="button submit-button">SUBMIT</button>
-      </div>  
-      
+
+      <button type="submit" class="btn-submit">
+        <i class="fas fa-user-plus"></i> Create Account
+      </button>
     </form>
-            <p style="text-align: center; text-decoration: none;"><a href="/" style="text-decoration: none;">← Back to Home</a></p>
+
+    <div class="auth-footer">
+      Already have an account?
+      <a href="/login">Sign in</a>
+      <div class="divider">or</div>
+      <a href="/">← Back to Home</a>
+    </div>
+
   </div>
-    <script>
-        // Function to hide the error oninput in the username box
-        function hideError_message() {
-          var error = document.getElementById('error');
-          error.innerText = "";
-        }
-        </script>
-</body>
-</html>
+</div>
+
+<script>
+  function hideErrorMessage() {
+    var error = document.querySelector('.error-msg');
+    if (error) error.innerText = '';
+  }
+</script>
+{% endblock %}

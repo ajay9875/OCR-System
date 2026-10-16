@@ -1,73 +1,655 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+{% extends "base.html" %}
 
-    <!-- To connect an external CSS file -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/About.css') }}">
+{% block title %}About Us | AI Course Recommendation{% endblock %}
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - Online Course Reservation</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='pic/logo.png') }}">
+{% block extra_css %}
+<style>
+  /* ---------- PAGE WRAPPER ---------- */
+  .about-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 5% 5rem;
+  }
 
-</head>
-<body>
+  /* ---------- PAGE HERO ---------- */
+  .about-hero {
+    text-align: center;
+    padding: 4rem 0 3rem;
+    background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
+    border-radius: 0 0 48px 48px;
+    margin-bottom: 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .about-hero::before {
+    content: '';
+    position: absolute;
+    top: -40%; right: -10%;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.12), transparent 70%);
+    border-radius: 50%;
+  }
+  .about-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -30%; left: -10%;
+    width: 350px; height: 350px;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.1), transparent 70%);
+    border-radius: 50%;
+  }
 
-   <div class="main-content-class">
-    <!-- Home Button-->
-    <div class="home">
-        <a href="/" class="btn"><img src="{{url_for('static',filename='css/homeicon.png')}}"></a>
+  .about-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .about-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    color: #1e40af;
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding: 0.45rem 1.1rem;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 1.3rem;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+  }
+
+  .about-hero h1 {
+    font-size: clamp(2rem, 4.5vw, 3.2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #0b1e3a;
+    line-height: 1.15;
+    margin-bottom: 1.2rem;
+  }
+  .about-hero h1 span {
+    background: linear-gradient(145deg, #2563eb, #7c3aed);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .about-hero p {
+    font-size: 1.15rem;
+    color: #475569;
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
+
+  /* ---------- SECTION TITLES ---------- */
+  .section-title {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #0b1e3a;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  .section-sub {
+    color: #475569;
+    font-size: 1.05rem;
+    max-width: 680px;
+    margin: 0 auto 3rem;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  /* ---------- MISSION / VISION / VALUES ---------- */
+  .mvv-section {
+    margin-bottom: 5rem;
+  }
+  .mvv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.8rem;
+  }
+  .mvv-card {
+    background: white;
+    border-radius: 24px;
+    padding: 2.2rem 1.8rem;
+    border: 1px solid #eef2f6;
+    box-shadow: 0 10px 25px -12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    text-align: center;
+  }
+  .mvv-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 36px -16px rgba(37, 99, 235, 0.15);
+    border-color: #dbeafe;
+  }
+  .mvv-icon {
+    width: 60px; height: 60px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #dbeafe, #ede9fe);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; color: #2563eb;
+    margin: 0 auto 1.3rem;
+  }
+  .mvv-card h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0b1e3a;
+    margin-bottom: 0.7rem;
+  }
+  .mvv-card p {
+    color: #475569;
+    font-size: 0.98rem;
+    line-height: 1.6;
+  }
+
+  /* ---------- STORY SECTION ---------- */
+  .story-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3rem;
+    align-items: center;
+    margin-bottom: 5rem;
+  }
+  .story-content {
+    flex: 1 1 380px;
+  }
+  .story-content h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #0b1e3a;
+    margin-bottom: 1.2rem;
+    line-height: 1.2;
+  }
+  .story-content p {
+    color: #475569;
+    font-size: 1.02rem;
+    line-height: 1.7;
+    margin-bottom: 1.2rem;
+  }
+  .story-content p:last-child { margin-bottom: 0; }
+
+  .story-visual {
+    flex: 1 1 320px;
+    background: linear-gradient(145deg, #dbeafe, #ede9fe);
+    border-radius: 48px 48px 12px 48px;
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    box-shadow: 0 30px 40px -20px rgba(0, 0, 0, 0.12);
+  }
+  .story-stat {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 16px;
+    padding: 1rem 1.2rem;
+    backdrop-filter: blur(8px);
+  }
+  .story-stat i {
+    font-size: 1.5rem;
+    color: #2563eb;
+    width: 44px; height: 44px;
+    background: white;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.1);
+  }
+  .story-stat h4 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #0b1e3a;
+    line-height: 1;
+  }
+  .story-stat p {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-top: 3px;
+  }
+
+  /* ---------- VALUES ---------- */
+  .values-section {
+    margin-bottom: 5rem;
+  }
+  .values-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.6rem;
+  }
+  .value-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 18px;
+    border: 1px solid #eef2f6;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .value-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 30px -16px rgba(37, 99, 235, 0.15);
+  }
+  .value-icon {
+    flex-shrink: 0;
+    width: 44px; height: 44px;
+    background: #e0e7ff;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: #1e40af;
+    font-size: 1.1rem;
+  }
+  .value-item h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0b1e3a;
+    margin-bottom: 0.3rem;
+  }
+  .value-item p {
+    font-size: 0.9rem;
+    color: #475569;
+    line-height: 1.5;
+  }
+
+  /* ---------- TEAM ---------- */
+  .team-section {
+    margin-bottom: 5rem;
+  }
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.8rem;
+  }
+  .team-card {
+    background: white;
+    border-radius: 24px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    border: 1px solid #eef2f6;
+    box-shadow: 0 10px 25px -12px rgba(0, 0, 0, 0.06);
+    transition: transform 0.25s, box-shadow 0.25s;
+  }
+  .team-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 36px -16px rgba(37, 99, 235, 0.15);
+  }
+  .team-avatar {
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    margin: 0 auto 1.2rem;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 2rem;
+    box-shadow: 0 12px 24px -8px rgba(37, 99, 235, 0.4);
+    border: 4px solid white;
+    position: relative;
+    overflow: hidden;
+  }
+  .team-avatar img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .team-card h5 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0b1e3a;
+    margin-bottom: 0.25rem;
+  }
+  .team-card .role {
+    font-size: 0.88rem;
+    color: #2563eb;
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+  }
+  .team-card p {
+    font-size: 0.88rem;
+    color: #64748b;
+    line-height: 1.55;
+  }
+  .team-socials {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: 1rem;
+  }
+  .team-socials a {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #475569;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+    text-decoration: none;
+  }
+  .team-socials a:hover {
+    background: #2563eb;
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  /* ---------- CTA ---------- */
+  .about-cta {
+    background: linear-gradient(135deg, #0b1e3a, #1e3a8a);
+    border-radius: 32px;
+    padding: 3.5rem 2.5rem;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .about-cta::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle at 30% 30%, rgba(37, 99, 235, 0.35), transparent 55%);
+  }
+  .about-cta h2 {
+    font-size: clamp(1.7rem, 3.5vw, 2.3rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  .about-cta p {
+    font-size: 1.05rem;
+    color: #cbd5e1;
+    max-width: 560px;
+    margin: 0 auto 2rem;
+    position: relative;
+  }
+  .cta-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    position: relative;
+  }
+  .btn-primary, .btn-outline {
+    padding: 0.9rem 2rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+  }
+  .btn-primary {
+    background: #2563eb;
+    color: white;
+    box-shadow: 0 10px 20px -8px rgba(37, 99, 235, 0.8);
+  }
+  .btn-primary:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+  }
+  .btn-outline {
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    color: white;
+  }
+  .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: white;
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 768px) {
+    .about-hero { padding: 3rem 1rem 2.5rem; border-radius: 0 0 32px 32px; }
+    .story-section { flex-direction: column; }
+    .story-visual { border-radius: 32px; }
+    .section-title { font-size: 1.7rem; }
+    .about-cta { padding: 2.5rem 1.5rem; border-radius: 24px; }
+    .cta-group { flex-direction: column; align-items: stretch; }
+    .btn-primary, .btn-outline { width: 100%; justify-content: center; }
+  }
+  @media (max-width: 480px) {
+    .about-page { padding: 0 5% 3rem; }
+    .about-hero h1 { font-size: 1.9rem; }
+    .section-title { font-size: 1.5rem; }
+    .team-grid { grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .team-card { padding: 1.5rem 1rem; }
+    .team-avatar { width: 72px; height: 72px; font-size: 1.5rem; }
+    .team-card h5 { font-size: 1rem; }
+  }
+  @media (max-width: 380px) {
+    .team-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="about-page">
+
+  <!-- ================= HERO ================= -->
+  <section class="about-hero">
+    <div class="about-hero-content">
+      <span class="about-badge">
+        <i class="fas fa-info-circle"></i> About Us
+      </span>
+      <h1>Empowering learners to <span>achieve more</span></h1>
+      <p>
+        We connect curious minds with world-class courses, guided by AI that
+        understands your goals, pace, and potential.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= MISSION / VISION / VALUES ================= -->
+  <section class="mvv-section">
+    <h2 class="section-title">What drives us</h2>
+    <p class="section-sub">
+      Every decision we make is rooted in a simple belief: education should be
+      accessible, personal, and life-changing.
+    </p>
+    <div class="mvv-grid">
+      <div class="mvv-card">
+        <div class="mvv-icon"><i class="fas fa-bullseye"></i></div>
+        <h3>Our Mission</h3>
+        <p>
+          To empower learners of all ages by providing a seamless reservation
+          system for a wide range of online courses — from technical skills to
+          creative arts, there's something for everyone.
+        </p>
       </div>
-
-    <div class="about-content">
-        <h2>Welcome to Online Course Reservation</h2>
+      <div class="mvv-card">
+        <div class="mvv-icon"><i class="fas fa-eye"></i></div>
+        <h3>Our Vision</h3>
         <p>
-            We’re excited to have you on board as you take the first step toward achieving 
-            your learning goals. Our platform is designed to make finding and reserving 
-            courses simple, efficient, and tailored to your needs. Whether you're looking 
-            to enhance your skills, explore a new field, or pursue a lifelong passion.
-            At Online Course Reservation, we are committed to making education accessible and flexible. 
-            Whether you're looking to advance your career, gain new skills, or explore a personal interest, 
-            our platform connects you with top-quality courses offered by experienced instructors worldwide.
+          A world where every learner has a personalized path to success,
+          guided by intelligent technology and a community that celebrates
+          growth at every step.
         </p>
+      </div>
+      <div class="mvv-card">
+        <div class="mvv-icon"><i class="fas fa-heart"></i></div>
+        <h3>Our Values</h3>
         <p>
-            Our mission is to empower learners of all ages by providing a seamless reservation system for a wide 
-            range of online courses. From technical skills to creative arts, we have something for everyone.
+          Accessibility, transparency, and learner-first design. We're committed
+          to making education flexible, affordable, and tailored to your needs.
         </p>
+      </div>
     </div>
-  </div>
+  </section>
 
-
-    <div class="team-section">
-        <h2 class="text-center">Meet Our Team</h2>
-        <br>
-        <div class="row justify-content-center">
-            <div class="col-md-3 team-member">
-                <img src="{{ url_for('static', filename='css/pic.jpeg') }}" alt="Picture"><h5>Ajay Kumar Sah</h5>
-                <p>Founder & CEO</p>
-            </div>
-            <div class="col-md-3 team-member">
-                <img src="{{ url_for('static', filename='css/pic.jpeg') }}" alt="Picture"><h5>Ajay Kumar Sah</h5>
-                <p>Chief Operating Officer</p>
-            </div>
-            <div class="col-md-3 team-member">
-                <img src="{{ url_for('static', filename='css/pic.jpeg') }}" alt="Picture"><h5>Ajay Kumar Sah</h5>
-                <p>Lead Developer</p>
-            </div>
-            <div class="col-md-3 team-member">
-                <img src="{{ url_for('static', filename='css/pic.jpeg') }}" alt="Picture"><h5>Ajay Kumar Sah</h5>
-                <p>Head of Marketing</p>
-            </div>
+  <!-- ================= OUR STORY ================= -->
+  <section class="story-section">
+    <div class="story-content">
+      <h2>Our story</h2>
+      <p>
+        Welcome to <strong>Online Course Reservation</strong> — we're excited to
+        have you on board as you take the first step toward achieving your
+        learning goals. Our platform is designed to make finding and reserving
+        courses simple, efficient, and tailored to your needs.
+      </p>
+      <p>
+        Whether you're looking to enhance your skills, explore a new field, or
+        pursue a lifelong passion, we're committed to making education accessible
+        and flexible. Our platform connects you with top-quality courses offered
+        by experienced instructors worldwide.
+      </p>
+      <p>
+        From technical skills to creative arts, we have something for everyone.
+        Join thousands of learners who have already found their path with us.
+      </p>
+    </div>
+    <div class="story-visual">
+      <div class="story-stat">
+        <i class="fas fa-users"></i>
+        <div>
+          <h4>12,000+</h4>
+          <p>Active learners</p>
         </div>
+      </div>
+      <div class="story-stat">
+        <i class="fas fa-book-open"></i>
+        <div>
+          <h4>450+</h4>
+          <p>Expert-led courses</p>
+        </div>
+      </div>
+      <div class="story-stat">
+        <i class="fas fa-globe"></i>
+        <div>
+          <h4>60+</h4>
+          <p>Countries reached</p>
+        </div>
+      </div>
+      <div class="story-stat">
+        <i class="fas fa-star"></i>
+        <div>
+          <h4>4.9 / 5</h4>
+          <p>Average rating</p>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <footer>
-        <p>&copy; 2024 Online Course Reservation. All rights reserved.</p>
-    </footer>
+  <!-- ================= VALUES ================= -->
+  <section class="values-section">
+    <h2 class="section-title">What we stand for</h2>
+    <p class="section-sub">
+      Our core values shape every feature we build and every course we recommend.
+    </p>
+    <div class="values-grid">
+      <div class="value-item">
+        <div class="value-icon"><i class="fas fa-universal-access"></i></div>
+        <div>
+          <h4>Accessibility first</h4>
+          <p>Education should be within reach for everyone, everywhere.</p>
+        </div>
+      </div>
+      <div class="value-item">
+        <div class="value-icon"><i class="fas fa-shield-alt"></i></div>
+        <div>
+          <h4>Trust &amp; transparency</h4>
+          <p>No hidden fees. No misleading claims. Just honest learning.</p>
+        </div>
+      </div>
+      <div class="value-item">
+        <div class="value-icon"><i class="fas fa-user-graduate"></i></div>
+        <div>
+          <h4>Learner-centric</h4>
+          <p>Every recommendation is built around your goals, not ours.</p>
+        </div>
+      </div>
+      <div class="value-item">
+        <div class="value-icon"><i class="fas fa-rocket"></i></div>
+        <div>
+          <h4>Continuous innovation</h4>
+          <p>We evolve with technology to give you the best learning tools.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-</html>
+  <!-- ================= TEAM ================= -->
+  <section class="team-section">
+    <h2 class="section-title">Meet our team</h2>
+    <p class="section-sub">
+      A small but passionate team dedicated to transforming how the world learns.
+    </p>
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="team-avatar">
+          <img src="{{ url_for('static', filename='css/pic.jpeg') }}" alt="Ajay Kumar Sah">
+        </div>
+        <h5>Ajay Kumar Sah</h5>
+        <div class="role">Founder &amp; CEO</div>
+        <p>Visionary leader driving the mission to democratize education.</p>
+        <div class="team-socials">
+          <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+        </div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar">
+          <img src="{{ url_for('static', filename='css/pic.jpeg') }}" alt="Ajay Kumar Sah">
+        </div>
+        <h5>Ajay Kumar Sah</h5>
+        <div class="role">Chief Operating Officer</div>
+        <p>Ensures every learner gets a smooth, reliable experience.</p>
+        <div class="team-socials">
+          <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+        </div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar">
+          <img src="{{ url_for('static', filename='css/pic.jpeg') }}" alt="Ajay Kumar Sah">
+        </div>
+        <h5>Ajay Kumar Sah</h5>
+        <div class="role">Lead Developer</div>
+        <p>Builds the AI engine that powers your personalized recommendations.</p>
+        <div class="team-socials">
+          <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+        </div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar">
+          <img src="{{ url_for('static', filename='css/pic.jpeg') }}" alt="Ajay Kumar Sah">
+        </div>
+        <h5>Ajay Kumar Sah</h5>
+        <div class="role">Head of Marketing</div>
+        <p>Connects learners with the courses that change their lives.</p>
+        <div class="team-socials">
+          <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FINAL CTA ================= -->
+  <section class="about-cta">
+    <h2>Ready to start your journey?</h2>
+    <p>
+      Join thousands of learners who've found their perfect course with us.
+      It's free to get started.
+    </p>
+    <div class="cta-group">
+      <a href="/register" class="btn-primary">
+        <i class="fas fa-graduation-cap"></i> Get started free
+      </a>
+      <a href="/courses" class="btn-outline">
+        <i class="fas fa-compass"></i> Explore courses
+      </a>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

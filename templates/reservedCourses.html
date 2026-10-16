@@ -1,132 +1,256 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='pic/logo.png') }}">
+{% extends "base_loggedin.html" %}
 
-    <title>Your Courses</title>
-    <style>
+{% block title %}My Courses | AI Course Recommendation{% endblock %}
 
-        /* All courses table style */
-        table{
-            width:100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-        border: 1px solid #ddd;
-        padding: 10px;
-         }
-        th{
-            background: #333;
-            color:white;
-        }
-    
-        .profile-header {
-            padding: 10px;
-            background-color: #222222;
-            color: white;
-            text-align: center;
-            margin: 0px;
-        }
-        .home {
-            margin: 10px;
-        }
-        .home img {
-            height: 60px;
-            width: 60px;
-            border-radius: 50%;
-        }
-        
-        .allcourse{
-            width:fit-content;
-            margin-left: 250px;
-        }
-        .main-body{
-            display:flex;
-        }
-    .btn-container button{
-            background: red;
-            border-radius: 5px;
-            border:groove 2px rgb(141, 1, 1);
-            padding:3px;
-        }
-        .btn-container button:hover{
-            background: rgb(226, 2, 2);
-            border-radius: 5px;
-            padding:3px;
-        }
+{% block extra_css %}
+<style>
+  .page-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .page-header h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #0b1e3a;
+    margin-bottom: 0.3rem;
+  }
+  .page-header p {
+    color: #64748b;
+    font-size: 0.98rem;
+  }
 
-/*----Course section-----*/
-.flash-container {
+  .btn-browse {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #2563eb;
+    color: white;
+    padding: 0.7rem 1.3rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.92rem;
+    box-shadow: 0 8px 16px -6px rgba(37, 99, 235, 0.4);
+    transition: background 0.2s, transform 0.15s;
+    white-space: nowrap;
+  }
+  .btn-browse:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+  }
+
+  .table-wrap {
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #eef2f6;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+  }
+
+  .courses-table {
     width: 100%;
-    max-width: 600px;
-    margin: 20px auto;
-    padding: 10px;
-}
+    border-collapse: collapse;
+    font-size: 0.92rem;
+  }
+  .courses-table thead th {
+    background: #f8fafc;
+    color: #475569;
+    text-align: left;
+    padding: 0.9rem 1rem;
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border-bottom: 1px solid #eef2f6;
+    white-space: nowrap;
+  }
+  .courses-table tbody td {
+    padding: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: middle;
+  }
+  .courses-table tbody tr:last-child td { border-bottom: none; }
+  .courses-table tbody tr:hover { background: #f8fafc; }
 
+  .course-code {
+    font-family: 'SF Mono', Monaco, monospace;
+    background: #e0e7ff;
+    color: #1e40af;
+    font-weight: 700;
+    font-size: 0.78rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 8px;
+    display: inline-block;
+    white-space: nowrap;
+  }
+  .course-name {
+    font-weight: 600;
+    color: #0b1e3a;
+  }
+
+  .btn-remove {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.15s;
+    white-space: nowrap;
+  }
+  .btn-remove:hover {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
+    transform: translateY(-1px);
+  }
+
+  /* Empty state */
+  .empty-state {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 4rem 2rem;
+    text-align: center;
+    border: 1px dashed #cbd5e1;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+  .empty-icon {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, #dbeafe, #ede9fe);
+    border-radius: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #2563eb;
+    margin-bottom: 1.2rem;
+  }
+  .empty-state h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0b1e3a;
+    margin-bottom: 0.5rem;
+  }
+  .empty-state p {
+    color: #64748b;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.55;
+  }
+
+  /* Responsive -> cards */
+  @media (max-width: 768px) {
+    .courses-table thead { display: none; }
+    .courses-table,
+    .courses-table tbody,
+    .courses-table tr,
+    .courses-table td {
+      display: block;
+      width: 100%;
+    }
+    .courses-table tr {
+      border-bottom: 1px solid #eef2f6;
+      padding: 1rem;
+    }
+    .courses-table tr:last-child { border-bottom: none; }
+    .courses-table td {
+      border: none;
+      padding: 0.3rem 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+    .courses-table td::before {
+      content: attr(data-label);
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #94a3b8;
+    }
+    .courses-table td:last-child {
+      padding-top: 0.75rem;
+      margin-top: 0.5rem;
+      border-top: 1px solid #f1f5f9;
+      justify-content: flex-end;
+    }
+    .courses-table td:last-child::before { display: none; }
+  }
 </style>
-</head>
-<body>
-    <div class="profile-header">
-        <p>Welcome to Your Courses Page!</p>
-    </div>
-    <div class="success">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-         {% if messages %}
-             {% for categories, message in messages %}
-              <h3 style="color:green">{{ message }}</h3>
-             {% endfor %}
-         {% endif %}
-         {% endwith %}
-    </div>
-    <div class="main-body">
-        <div class="home">
-            <a href="/" class="btn"><img src="{{ url_for('static', filename='css/homeicon.png') }}"></a>
-        </div>
-    
-      <!-- Reserved  Courses-->
-        <div class="allcourse">
-            <h3>All Enrolled Courses</h3>
-            {% if allenrolledcourses %}
-                <table>
-                    <thead>
-                        <tr>
-                            <th>SL.No.</th>
-                            <th>ID</th>
-                            <th>Course Code</th>
-                            <th>Course Name</th>
-                            <th>Course Unit</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                {% for course in allenrolledcourses %}
-                <tbody>
-                    <!-- Example Row -->
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ course['id'] }}</td>
-                        <td>{{ course['course_code'] }}</td>
-                        <td>{{ course['course_name'] }}</td>
-                        <td>{{ course['course_unit'] }}</td>
-                        <td>
-                            <div class="btn-container">
-                              <form method="POST" action="/removeCourse">
-                                <input type="hidden" name="id" value="{{ course['id'] }}">
-                                <input type="hidden" name="course_name" value="{{ course['course_name'] }}">
-                                <button>Remove</button>
-                              </form>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-                {% endfor %}
-            </table>
-            {% else %}
-                No Enrolled Courses to show.
-            {% endif %}
-        </div>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1>My Courses</h1>
+    <p>All the courses you have reserved so far.</p>
   </div>
-</body>
-</html>
+  <a href="{{ url_for('home') }}" class="btn-browse">
+    <i class="fas fa-plus"></i> Browse more courses
+  </a>
+</div>
+
+{% if allenrolledcourses and allenrolledcourses | length > 0 %}
+
+<div class="table-wrap">
+  <table class="courses-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Course Code</th>
+        <th>Course Name</th>
+        <th>Units</th>
+        <th style="text-align:right;">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for course in allenrolledcourses %}
+      <tr>
+        <td data-label="#">{{ loop.index }}</td>
+        <td data-label="Code"><span class="course-code">{{ course['course_code'] }}</span></td>
+        <td data-label="Course" class="course-name">{{ course['course_name'] }}</td>
+        <td data-label="Units">{{ course['course_unit'] }}</td>
+        <td data-label="Action" style="text-align:right;">
+          <form method="POST" action="/removeCourse" style="display:inline;">
+            <input type="hidden" name="id" value="{{ course['id'] }}">
+            <input type="hidden" name="course_name" value="{{ course['course_name'] }}">
+            <button type="submit" class="btn-remove">
+              <i class="fas fa-trash-alt"></i> Remove
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% else %}
+
+<div class="empty-state">
+  <div class="empty-icon"><i class="fas fa-bookmark"></i></div>
+  <h3>No courses reserved yet</h3>
+  <p>Browse our AI-recommended courses and reserve the ones that match your goals.</p>
+  <a href="{{ url_for('home') }}" class="btn-browse">
+    <i class="fas fa-compass"></i> Explore courses
+  </a>
+</div>
+
+{% endif %}
+
+{% endblock %}
